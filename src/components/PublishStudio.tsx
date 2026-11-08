@@ -222,13 +222,13 @@ export const PublishStudio: React.FC = () => {
     window.print()
   }
 
-  // Theme styling for preview
+  // Theme styling for preview - headings and body share harmonious font families
   const getThemeTypographyClass = (theme: BookTheme) => {
     switch (theme) {
       case 'fantasy':
         return {
           font: 'font-["EB_Garamond",serif]',
-          heading: 'font-["Cinzel",serif] tracking-wider uppercase',
+          heading: 'font-["EB_Garamond",serif] tracking-wider uppercase font-bold',
         }
       case 'modern':
         return {
@@ -237,14 +237,14 @@ export const PublishStudio: React.FC = () => {
         }
       case 'romantic':
         return {
-          font: 'font-["Newsreader",serif] italic',
-          heading: 'font-["Newsreader",serif] font-normal tracking-wide',
+          font: 'font-["Newsreader",serif]',
+          heading: 'font-["Newsreader",serif] font-bold tracking-wide',
         }
       case 'classic':
       default:
         return {
           font: 'font-["EB_Garamond",serif]',
-          heading: 'font-["Cinzel",serif] tracking-widest uppercase',
+          heading: 'font-["EB_Garamond",serif] tracking-widest uppercase font-bold',
         }
     }
   }

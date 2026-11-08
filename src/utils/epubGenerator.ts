@@ -53,9 +53,9 @@ body {
   color: #1a1a1a;
 }
 h1, h2, h3 {
-  font-family: "Cinzel", Georgia, serif;
+  font-family: inherit;
   text-align: center;
-  font-weight: normal;
+  font-weight: bold;
   letter-spacing: 0.05em;
   text-transform: uppercase;
 }

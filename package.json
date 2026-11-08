@@ -3,6 +3,10 @@
   "version": "1.0.0",
   "description": "Distraction-free desktop manuscript writing and book publishing studio for novelists and authors",
   "main": "dist-electron/main.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Mrinaldo/mriter.git"
+  },
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
@@ -11,7 +15,9 @@
     "dist": "npm run build && electron-builder",
     "dist:win": "npm run build && electron-builder --win",
     "dist:mac": "npm run build && electron-builder --mac",
-    "dist:linux": "npm run build && electron-builder --linux"
+    "dist:linux": "npm run build && electron-builder --linux",
+    "release": "npm run build && electron-builder --publish always",
+    "release:win": "npm run build && electron-builder --win --publish always"
   },
   "keywords": [
     "novel",
@@ -56,6 +62,11 @@
   "build": {
     "appId": "com.mriter.studio",
     "productName": "Mriter",
+    "publish": {
+      "provider": "github",
+      "owner": "Mrinaldo",
+      "repo": "mriter"
+    },
     "directories": {
       "output": "release"
     },
@@ -66,9 +77,18 @@
     "win": {
       "icon": "public/icon.ico",
       "target": [
-        "portable",
-        "nsis"
+        "nsis",
+        "portable"
       ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": "always",
+      "createStartMenuShortcut": true,
+      "shortcutName": "Mriter",
+      "deleteAppDataOnUninstall": false
     },
     "mac": {
       "target": "dmg",

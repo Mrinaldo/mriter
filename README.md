@@ -73,6 +73,31 @@ npm run dist:linux  # Linux AppImage
 
 ---
 
+## 📦 Publishing Releases to GitHub
+
+Releases are fully automated with GitHub Actions via `.github/workflows/release.yml`.
+
+### How to Publish a New Release:
+1. Update the version number in `package.json` (e.g. `"version": "1.0.1"`).
+2. Commit your changes:
+   ```bash
+   git add .
+   git commit -m "chore: bump version to v1.0.1"
+   ```
+3. Tag the commit and push:
+   ```bash
+   git tag v1.0.1
+   git push origin main --tags
+   ```
+4. GitHub Actions will automatically:
+   - Spin up a clean Windows build runner.
+   - Compile and package `Mriter Setup 1.0.1.exe` (NSIS Installer) and `Mriter 1.0.1.exe` (Portable).
+   - Create a GitHub Release under your repository with the installer assets and release checksums attached.
+
+> **Data Safety Guarantee**: Upgrades overwrite only application binaries in `AppData\Local\Programs\Mriter`. User manuscript data, story bibles, and settings in `AppData\Roaming\Mriter` are completely isolated and preserved across installations and updates.
+
+---
+
 ## ⌨️ Keyboard Shortcuts
 
 | Shortcut | Action |

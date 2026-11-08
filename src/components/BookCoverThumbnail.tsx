@@ -154,7 +154,7 @@ export const BookCoverThumbnail: React.FC<BookCoverThumbnailProps> = ({
           {/* Bottom Author */}
           <div className="z-10 pb-1">
             <p
-              className="font-sans text-[7px] uppercase tracking-wider line-clamp-1 opacity-80"
+              className="font-serif text-[8px] uppercase tracking-wider line-clamp-1 opacity-80"
               style={{ color: palette.accent }}
             >
               {author || 'Author'}

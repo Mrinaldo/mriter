@@ -159,35 +159,79 @@ export const ZenEditor: React.FC = () => {
     return () => window.removeEventListener('mriter-editor-command', handleEditorCommand)
   }, [editor])
 
-  // Get typography font family class
-  const getFontFamily = (font: EditorFont) => {
+  // Get typography font family class & CSS font-family
+  const getFontFamilyConfig = (font: EditorFont) => {
     switch (font) {
       case 'charter':
-        return 'font-["Charter","Bitstream_Charter","Sitka_Text",Georgia,serif] text-[1.18rem] leading-[1.82]'
+        return {
+          css: '"Charter", "Bitstream Charter", "Sitka Text", Georgia, serif',
+          fontClass: 'font-["Charter","Bitstream_Charter","Sitka_Text",Georgia,serif]',
+          bodyClass: 'text-[1.18rem] leading-[1.82]',
+        }
       case 'courier':
-        return 'font-["Courier_Prime",monospace] text-[1.08rem] leading-[1.85]'
+        return {
+          css: '"Courier Prime", Courier, monospace',
+          fontClass: 'font-["Courier_Prime",Courier,monospace]',
+          bodyClass: 'text-[1.08rem] leading-[1.85]',
+        }
       case 'palatino':
-        return 'font-["Palatino","Palatino_Linotype","Book_Antiqua",Georgia,serif] text-[1.16rem] leading-[1.8]'
+        return {
+          css: '"Palatino", "Palatino Linotype", "Book Antiqua", Georgia, serif',
+          fontClass: 'font-["Palatino","Palatino_Linotype","Book_Antiqua",Georgia,serif]',
+          bodyClass: 'text-[1.16rem] leading-[1.8]',
+        }
       case 'literata':
-        return 'font-["Literata",serif] text-[1.15rem] leading-[1.8]'
+        return {
+          css: '"Literata", Georgia, serif',
+          fontClass: 'font-["Literata",Georgia,serif]',
+          bodyClass: 'text-[1.15rem] leading-[1.8]',
+        }
       case 'newsreader':
-        return 'font-["Newsreader",serif] text-[1.2rem] leading-[1.8]'
+        return {
+          css: '"Newsreader", Georgia, serif',
+          fontClass: 'font-["Newsreader",Georgia,serif]',
+          bodyClass: 'text-[1.2rem] leading-[1.8]',
+        }
       case 'ia-mono':
-        return 'font-["IBM_Plex_Mono",monospace] text-[1.05rem] leading-[1.85]'
+        return {
+          css: '"IBM Plex Mono", monospace',
+          fontClass: 'font-["IBM_Plex_Mono",monospace]',
+          bodyClass: 'text-[1.05rem] leading-[1.85]',
+        }
       case 'garamond':
-        return 'font-["EB_Garamond",serif] text-[1.22rem] leading-[1.8]'
+        return {
+          css: '"EB Garamond", Georgia, serif',
+          fontClass: 'font-["EB_Garamond",Georgia,serif]',
+          bodyClass: 'text-[1.22rem] leading-[1.8]',
+        }
       case 'lora':
-        return 'font-["Lora",serif] text-[1.14rem] leading-[1.78]'
+        return {
+          css: '"Lora", Georgia, serif',
+          fontClass: 'font-["Lora",Georgia,serif]',
+          bodyClass: 'text-[1.14rem] leading-[1.78]',
+        }
       case 'merriweather':
-        return 'font-["Merriweather",serif] text-[1.1rem] leading-[1.85]'
+        return {
+          css: '"Merriweather", Georgia, serif',
+          fontClass: 'font-["Merriweather",Georgia,serif]',
+          bodyClass: 'text-[1.1rem] leading-[1.85]',
+        }
       case 'inter':
-        return 'font-["Inter",sans-serif] text-[1.06rem] leading-[1.75]'
+        return {
+          css: '"Inter", system-ui, -apple-system, sans-serif',
+          fontClass: 'font-["Inter",system-ui,-apple-system,sans-serif]',
+          bodyClass: 'text-[1.06rem] leading-[1.75]',
+        }
       default:
-        return 'font-serif text-[1.18rem] leading-[1.8]'
+        return {
+          css: '"EB Garamond", Georgia, serif',
+          fontClass: 'font-serif',
+          bodyClass: 'text-[1.18rem] leading-[1.8]',
+        }
     }
   }
 
-  const fontStyle = getFontFamily(editorFont)
+  const fontConfig = getFontFamilyConfig(editorFont)
   const wordCount = editor?.storage.characterCount.words() || 0
   const readingTimeMin = Math.max(1, Math.ceil(wordCount / 225))
   const isElectron = typeof window !== 'undefined' && Boolean(window.electronAPI)
@@ -401,11 +445,17 @@ export const ZenEditor: React.FC = () => {
 
       {/* Editor Content Area */}
       <div ref={editorContainerRef} className="flex-1 overflow-y-auto relative scroll-smooth">
-        <div className="max-w-[720px] mx-auto px-8 pt-8 pb-32">
+        <div
+          className={`max-w-[720px] mx-auto px-8 pt-8 pb-32 ${fontConfig.fontClass}`}
+          style={{ fontFamily: fontConfig.css }}
+        >
           {/* Scene / Chapter Header */}
           <div className="mb-6 pb-3 border-b border-subtle">
             {isScene && currentChapter && (
-              <p className="text-[10px] uppercase tracking-widest text-faint font-serif mb-1">
+              <p
+                className="text-[10px] uppercase tracking-widest text-faint mb-1.5"
+                style={{ fontFamily: 'inherit' }}
+              >
                 {currentChapter.title}
               </p>
             )}
@@ -419,12 +469,13 @@ export const ZenEditor: React.FC = () => {
                 }
               }}
               placeholder="Untitled Scene..."
-              className="w-full bg-transparent font-serif text-2xl font-bold tracking-tight outline-none placeholder:text-faint text-main"
+              className="w-full bg-transparent text-2xl font-bold tracking-tight outline-none placeholder:text-faint text-main"
+              style={{ fontFamily: 'inherit' }}
             />
           </div>
 
           {/* TipTap Surface */}
-          <div className={fontStyle}>
+          <div className={fontConfig.bodyClass} style={{ fontFamily: 'inherit' }}>
             <EditorContent editor={editor} />
           </div>
         </div>
