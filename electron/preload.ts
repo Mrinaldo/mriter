@@ -13,7 +13,20 @@ contextBridge.exposeInMainWorld('electronAPI', {
   closeWindow: () => ipcRenderer.invoke('window:close'),
   isWindowMaximized: () => ipcRenderer.invoke('window:isMaximized'),
   onWindowMaximizedChange: (callback: (isMaximized: boolean) => void) => {
-    ipcRenderer.on('window:maximized-change', (_event, value) => callback(value))
+    const subscription = (_event: any, value: boolean) => callback(value)
+    ipcRenderer.on('window:maximized-change', subscription)
+    return () => ipcRenderer.removeListener('window:maximized-change', subscription)
+  },
+  isWindowFullScreen: () => ipcRenderer.invoke('window:isFullScreen'),
+  onWindowFullScreenChange: (callback: (isFullScreen: boolean) => void) => {
+    const subscription = (_event: any, value: boolean) => callback(value)
+    ipcRenderer.on('window:fullscreen-change', subscription)
+    return () => ipcRenderer.removeListener('window:fullscreen-change', subscription)
+  },
+  onMenuAction: (callback: (action: string) => void) => {
+    const subscription = (_event: any, action: string) => callback(action)
+    ipcRenderer.on('menu:action', subscription)
+    return () => ipcRenderer.removeListener('menu:action', subscription)
   },
   platform: process.platform,
   onMainMessage: (callback: (message: string) => void) => {

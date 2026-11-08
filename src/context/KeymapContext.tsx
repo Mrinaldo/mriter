@@ -154,6 +154,18 @@ export const KeymapProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     }
   }, [registerActionHandler])
 
+  // Native Application Menu action bridge (macOS menubar integration)
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.electronAPI?.onMenuAction) {
+      const unsub = window.electronAPI.onMenuAction((actionId: string) => {
+        executeAction(actionId)
+      })
+      return () => {
+        if (typeof unsub === 'function') unsub()
+      }
+    }
+  }, [executeAction])
+
   // Global Keydown Listener
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {

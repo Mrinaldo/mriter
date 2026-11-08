@@ -122,7 +122,7 @@ export const ActionPaletteModal: React.FC = () => {
             className="flex-1 bg-transparent text-main text-sm outline-none placeholder:text-faint font-sans"
           />
           <span className="text-[10px] text-faint px-2 py-0.5 rounded bg-surface border border-subtle font-mono hidden sm:inline">
-            Ctrl+Shift+A
+            {formatKeyDisplay(getKeyForAction('system.findAction'))}
           </span>
           <button
             onClick={() => setIsActionPaletteOpen(false)}

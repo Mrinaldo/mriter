@@ -10,6 +10,7 @@ import {
 } from 'lucide-react'
 import { useManuscript } from '../context/ManuscriptContext'
 import { SceneStatus } from '../types/manuscript'
+import { formatKeyDisplay } from '../types/keymap'
 
 interface SceneInspectorProps {
   isOpen: boolean
@@ -63,7 +64,7 @@ export const SceneInspector: React.FC<SceneInspectorProps> = ({
         <button
           onClick={onToggle}
           className="p-1.5 rounded-md hover:text-main hover:bg-surface transition-colors cursor-pointer mb-2"
-          title="Expand Scene Inspector (Ctrl+Alt+I)"
+          title={`Expand Scene Inspector (${formatKeyDisplay('Ctrl+Alt+I')})`}
         >
           <PanelRightOpen className="w-4 h-4" />
         </button>
@@ -99,7 +100,7 @@ export const SceneInspector: React.FC<SceneInspectorProps> = ({
             <button
               onClick={onToggle}
               className="p-1.5 text-muted-theme hover:text-main hover:bg-surface rounded-md transition-colors cursor-pointer"
-              title="Collapse Scene Inspector (Ctrl+Alt+I)"
+              title={`Collapse Scene Inspector (${formatKeyDisplay('Ctrl+Alt+I')})`}
             >
               <PanelRightClose className="w-3.5 h-3.5" />
             </button>
@@ -153,7 +154,7 @@ export const SceneInspector: React.FC<SceneInspectorProps> = ({
           <button
             onClick={onToggle}
             className="p-1.5 text-muted-theme hover:text-main hover:bg-surface rounded-md transition-colors cursor-pointer"
-            title="Collapse Scene Inspector (Ctrl+Alt+I)"
+            title={`Collapse Scene Inspector (${formatKeyDisplay('Ctrl+Alt+I')})`}
           >
             <PanelRightClose className="w-3.5 h-3.5" />
           </button>

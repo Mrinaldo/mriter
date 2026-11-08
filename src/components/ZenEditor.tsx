@@ -16,6 +16,7 @@ import {
   Minimize2,
 } from 'lucide-react'
 import { useManuscript, EditorFont, WORLD_CLASS_FONTS } from '../context/ManuscriptContext'
+import { isMacOS, formatKeyDisplay } from '../types/keymap'
 
 export const ZenEditor: React.FC = () => {
   const {
@@ -236,16 +237,26 @@ export const ZenEditor: React.FC = () => {
   const readingTimeMin = Math.max(1, Math.ceil(wordCount / 225))
   const isElectron = typeof window !== 'undefined' && Boolean(window.electronAPI)
   const isWindows = isElectron && window.electronAPI?.platform !== 'darwin'
-  const isMac = isElectron && window.electronAPI?.platform === 'darwin'
+  const isMac = isElectron ? window.electronAPI?.platform === 'darwin' : isMacOS()
   const [isMaximized, setIsMaximized] = useState(false)
+  const [isFullScreen, setIsFullScreen] = useState(false)
 
-  // Track window maximized state for custom caption controls
+  // Track window maximized and fullscreen states for layout and custom controls
   useEffect(() => {
     if (isElectron && window.electronAPI?.isWindowMaximized) {
       window.electronAPI.isWindowMaximized().then((max) => setIsMaximized(Boolean(max)))
     }
     if (isElectron && window.electronAPI?.onWindowMaximizedChange) {
       window.electronAPI.onWindowMaximizedChange((max) => setIsMaximized(Boolean(max)))
+    }
+    if (isElectron && window.electronAPI?.isWindowFullScreen) {
+      window.electronAPI.isWindowFullScreen().then((fs) => setIsFullScreen(Boolean(fs)))
+    }
+    if (isElectron && window.electronAPI?.onWindowFullScreenChange) {
+      const unsub = window.electronAPI.onWindowFullScreenChange((fs) => setIsFullScreen(Boolean(fs)))
+      return () => {
+        if (typeof unsub === 'function') unsub()
+      }
     }
   }, [isElectron])
 
@@ -264,7 +275,7 @@ export const ZenEditor: React.FC = () => {
       {/* Editor Formatting Toolbar */}
       <div
         style={{
-          paddingLeft: isMac && focusMode ? '80px' : '0.75rem',
+          paddingLeft: isMac && focusMode && !isFullScreen ? '80px' : '0.75rem',
           paddingRight: isWindows && focusMode ? '0' : '0.75rem',
         }}
         className={`h-11 border-b border-subtle bg-panel flex items-center justify-between select-none shrink-0 text-muted-theme transition-colors duration-150 ${
@@ -280,7 +291,7 @@ export const ZenEditor: React.FC = () => {
                 ? 'bg-accent-soft text-accent'
                 : 'hover:text-main hover:bg-surface'
             }`}
-            title="Bold (Ctrl+B)"
+            title={`Bold (${formatKeyDisplay('Ctrl+B')})`}
           >
             <Bold className="w-3.5 h-3.5" />
           </button>
@@ -291,7 +302,7 @@ export const ZenEditor: React.FC = () => {
                 ? 'bg-accent-soft text-accent'
                 : 'hover:text-main hover:bg-surface'
             }`}
-            title="Italic (Ctrl+I)"
+            title={`Italic (${formatKeyDisplay('Ctrl+I')})`}
           >
             <Italic className="w-3.5 h-3.5" />
           </button>
@@ -305,7 +316,7 @@ export const ZenEditor: React.FC = () => {
                 ? 'bg-accent-soft text-accent'
                 : 'hover:text-main hover:bg-surface'
             }`}
-            title="Heading 1"
+            title={`Heading 1 (${formatKeyDisplay('Ctrl+Alt+1')})`}
           >
             <Heading1 className="w-3.5 h-3.5" />
           </button>
@@ -316,7 +327,7 @@ export const ZenEditor: React.FC = () => {
                 ? 'bg-accent-soft text-accent'
                 : 'hover:text-main hover:bg-surface'
             }`}
-            title="Heading 2"
+            title={`Heading 2 (${formatKeyDisplay('Ctrl+Alt+2')})`}
           >
             <Heading2 className="w-3.5 h-3.5" />
           </button>
@@ -327,7 +338,7 @@ export const ZenEditor: React.FC = () => {
                 ? 'bg-accent-soft text-accent'
                 : 'hover:text-main hover:bg-surface'
             }`}
-            title="Blockquote"
+            title={`Blockquote (${formatKeyDisplay('Ctrl+Shift+.')})`}
           >
             <Quote className="w-3.5 h-3.5" />
           </button>
@@ -335,7 +346,7 @@ export const ZenEditor: React.FC = () => {
           <button
             onClick={() => editor?.chain().focus().setHorizontalRule().run()}
             className="p-1 rounded hover:text-main hover:bg-surface transition-colors hidden md:inline-flex shrink-0"
-            title="Scene Break Divider (✦ ✦ ✦)"
+            title={`Scene Break Divider (${formatKeyDisplay('Ctrl+Enter')})`}
           >
             <Minus className="w-3.5 h-3.5" />
           </button>

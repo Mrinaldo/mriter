@@ -267,6 +267,7 @@ export const DEFAULT_ACTIONS: KeymapAction[] = [
     category: 'System',
     description: 'Open Keymap dialog to inspect, search, and rebind shortcuts',
     defaultKey: 'Ctrl+Alt+K',
+    aliases: ['Ctrl+,'],
     allowInInput: true,
   },
 ]
@@ -320,11 +321,26 @@ export function normalizeKeyEvent(e: KeyboardEvent): string | null {
 }
 
 /**
+ * Detects whether the current execution platform is macOS
+ */
+export function isMacOS(): boolean {
+  if (typeof window !== 'undefined' && window.electronAPI?.platform) {
+    return window.electronAPI.platform === 'darwin'
+  }
+  if (typeof navigator !== 'undefined') {
+    return /Mac|iPhone|iPad|iPod/i.test(
+      navigator.userAgent || (navigator as any).userAgentData?.platform || (navigator as any).platform || ''
+    )
+  }
+  return false
+}
+
+/**
  * Formats a combo string for display with platform adaptation (macOS vs Windows)
  */
 export function formatKeyDisplay(combo: string | null | undefined): string {
   if (!combo) return 'None'
-  const isMac = typeof navigator !== 'undefined' && /Mac|iPhone|iPad|iPod/.test(navigator.userAgent)
+  const isMac = isMacOS()
 
   if (isMac) {
     return combo
@@ -339,7 +355,7 @@ export function formatKeyDisplay(combo: string | null | undefined): string {
       .replace(/Up/g, '↑')
       .replace(/Left/g, '←')
       .replace(/Right/g, '→')
-      .replace(/\+/g, ' ')
+      .replace(/\+/g, '')
   }
 
   return combo

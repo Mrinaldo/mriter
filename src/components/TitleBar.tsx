@@ -19,6 +19,8 @@ import {
 } from 'lucide-react'
 import { useManuscript, EditorTheme } from '../context/ManuscriptContext'
 import { useKeymap } from '../context/KeymapContext'
+import { isMacOS } from '../types/keymap'
+import { MriterLogo } from './MriterLogo'
 
 export const TitleBar: React.FC = () => {
   const {
@@ -86,11 +88,12 @@ export const TitleBar: React.FC = () => {
   const currentTheme = themes.find((t) => t.id === editorTheme) || themes[0]
 
   const isElectron = typeof window !== 'undefined' && Boolean(window.electronAPI)
-  const isMac = isElectron && window.electronAPI?.platform === 'darwin'
+  const isMac = isElectron ? window.electronAPI?.platform === 'darwin' : isMacOS()
   const isWindows = isElectron && window.electronAPI?.platform !== 'darwin'
   const [isMaximized, setIsMaximized] = useState(false)
+  const [isFullScreen, setIsFullScreen] = useState(false)
 
-  // Track window maximized state for custom caption controls
+  // Track window maximized and fullscreen states for layout and caption controls
   useEffect(() => {
     if (isElectron && window.electronAPI?.isWindowMaximized) {
       window.electronAPI.isWindowMaximized().then((max) => setIsMaximized(Boolean(max)))
@@ -98,12 +101,21 @@ export const TitleBar: React.FC = () => {
     if (isElectron && window.electronAPI?.onWindowMaximizedChange) {
       window.electronAPI.onWindowMaximizedChange((max) => setIsMaximized(Boolean(max)))
     }
+    if (isElectron && window.electronAPI?.isWindowFullScreen) {
+      window.electronAPI.isWindowFullScreen().then((fs) => setIsFullScreen(Boolean(fs)))
+    }
+    if (isElectron && window.electronAPI?.onWindowFullScreenChange) {
+      const unsub = window.electronAPI.onWindowFullScreenChange((fs) => setIsFullScreen(Boolean(fs)))
+      return () => {
+        if (typeof unsub === 'function') unsub()
+      }
+    }
   }, [isElectron])
 
   return (
     <header
       style={{
-        paddingLeft: isMac ? '80px' : '0.75rem',
+        paddingLeft: isMac && !isFullScreen ? '80px' : '0.75rem',
         paddingRight: isWindows ? '0' : '0.75rem',
       }}
       className="h-11 bg-panel border-b border-subtle flex items-center justify-between select-none z-30 shrink-0 text-main transition-colors duration-150 titlebar-drag-region"
@@ -112,9 +124,9 @@ export const TitleBar: React.FC = () => {
       {/* LEFT: Monogram & Unified Project Dropdown Menu */}
       {/* ======================================================== */}
       <div className="flex items-center space-x-1.5 sm:space-x-2 min-w-0 shrink">
-        {/* Monogram */}
-        <div className="w-6 h-6 rounded bg-accent-soft flex items-center justify-center text-accent font-serif font-bold text-xs shrink-0">
-          M
+        {/* Mriter Brand Monogram */}
+        <div className="w-6 h-6 rounded-md bg-accent-soft text-accent flex items-center justify-center shrink-0 border border-subtle/70 shadow-xs" title="Mriter Studio">
+          <MriterLogo size={16} variant="monogram" />
         </div>
 
         {/* Project Dropdown Trigger & Popover */}
@@ -393,7 +405,7 @@ export const TitleBar: React.FC = () => {
         {/* Focus / Zen Mode - ALWAYS VISIBLE */}
         <button
           onClick={() => setFocusMode(!focusMode)}
-          title={focusMode ? 'Exit Zen Mode (Esc)' : 'Zen Focus Mode (F11)'}
+          title={focusMode ? `Exit Zen Mode (${formatKeyDisplay('Escape')})` : `Zen Focus Mode (${formatKeyDisplay('F11')})`}
           className={`p-1.5 rounded-md transition-colors cursor-pointer shrink-0 ${
             focusMode
               ? 'bg-accent-soft text-accent'

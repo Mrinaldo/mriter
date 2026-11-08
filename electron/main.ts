@@ -1,6 +1,8 @@
-import { app, BrowserWindow, ipcMain, dialog } from 'electron'
+import { app, BrowserWindow, ipcMain, dialog, Menu, MenuItemConstructorOptions } from 'electron'
 import path from 'node:path'
 import fs from 'node:fs/promises'
+
+app.name = 'Mriter'
 
 // The built directory structure
 //
@@ -10,7 +12,7 @@ import fs from 'node:fs/promises'
 // │ ├─┬ dist-electron
 // │ │ ├── main.js
 // │ │ └── preload.mjs
-//
+// │
 process.env.APP_ROOT = path.join(__dirname, '..')
 
 export const MAIN_DIST = path.join(process.env.APP_ROOT, 'dist-electron')
@@ -20,7 +22,156 @@ process.env.VITE_PUBLIC = process.env.VITE_DEV_SERVER_URL
   ? path.join(process.env.APP_ROOT, 'public')
   : RENDERER_DIST
 
-let win: BrowserWindow | null
+let win: BrowserWindow | null = null
+
+function setupApplicationMenu() {
+  const isMac = process.platform === 'darwin'
+
+  const template: MenuItemConstructorOptions[] = [
+    ...(isMac
+      ? [
+          {
+            label: app.name,
+            submenu: [
+              { role: 'about' as const },
+              { type: 'separator' as const },
+              {
+                label: 'Preferences...',
+                accelerator: 'CmdOrCtrl+,',
+                click: () => {
+                  win?.webContents.send('menu:action', 'system.openKeymap')
+                },
+              },
+              { type: 'separator' as const },
+              { role: 'services' as const },
+              { type: 'separator' as const },
+              { role: 'hide' as const },
+              { role: 'hideOthers' as const },
+              { role: 'unhide' as const },
+              { type: 'separator' as const },
+              { role: 'quit' as const },
+            ],
+          },
+        ]
+      : []),
+    {
+      label: 'File',
+      submenu: [
+        {
+          label: 'New Manuscript...',
+          accelerator: 'CmdOrCtrl+Alt+M',
+          click: () => {
+            win?.webContents.send('menu:action', 'project.new')
+          },
+        },
+        {
+          label: 'Open Manuscript...',
+          accelerator: 'CmdOrCtrl+O',
+          click: () => {
+            win?.webContents.send('menu:action', 'project.open')
+          },
+        },
+        { type: 'separator' as const },
+        {
+          label: 'Save Manuscript',
+          accelerator: 'CmdOrCtrl+S',
+          click: () => {
+            win?.webContents.send('menu:action', 'project.save')
+          },
+        },
+        { type: 'separator' as const },
+        isMac ? { role: 'close' as const } : { role: 'quit' as const },
+      ],
+    },
+    {
+      label: 'Edit',
+      submenu: [
+        { role: 'undo' as const },
+        { role: 'redo' as const },
+        { type: 'separator' as const },
+        { role: 'cut' as const },
+        { role: 'copy' as const },
+        { role: 'paste' as const },
+        { role: 'pasteAndMatchStyle' as const },
+        { role: 'delete' as const },
+        { role: 'selectAll' as const },
+      ],
+    },
+    {
+      label: 'View',
+      submenu: [
+        {
+          label: 'Toggle Zen Focus Mode',
+          accelerator: 'F11',
+          click: () => {
+            win?.webContents.send('menu:action', 'layout.toggleZen')
+          },
+        },
+        {
+          label: 'Toggle Binder Sidebar',
+          accelerator: 'CmdOrCtrl+\\',
+          click: () => {
+            win?.webContents.send('menu:action', 'layout.toggleSidebar')
+          },
+        },
+        {
+          label: 'Toggle Scene Inspector',
+          accelerator: 'CmdOrCtrl+Alt+I',
+          click: () => {
+            win?.webContents.send('menu:action', 'layout.toggleInspector')
+          },
+        },
+        { type: 'separator' as const },
+        { role: 'reload' as const },
+        { role: 'forceReload' as const },
+        { role: 'toggleDevTools' as const },
+        { type: 'separator' as const },
+        { role: 'resetZoom' as const },
+        { role: 'zoomIn' as const },
+        { role: 'zoomOut' as const },
+        { type: 'separator' as const },
+        { role: 'togglefullscreen' as const },
+      ],
+    },
+    {
+      label: 'Window',
+      submenu: [
+        { role: 'minimize' as const },
+        { role: 'zoom' as const },
+        ...(isMac
+          ? [
+              { type: 'separator' as const },
+              { role: 'front' as const },
+              { type: 'separator' as const },
+              { role: 'window' as const },
+            ]
+          : [{ role: 'close' as const }]),
+      ],
+    },
+    {
+      role: 'help' as const,
+      submenu: [
+        {
+          label: 'Configure Keyboard Shortcuts...',
+          accelerator: 'CmdOrCtrl+Alt+K',
+          click: () => {
+            win?.webContents.send('menu:action', 'system.openKeymap')
+          },
+        },
+        {
+          label: 'Find Action / Commands...',
+          accelerator: 'CmdOrCtrl+Shift+A',
+          click: () => {
+            win?.webContents.send('menu:action', 'system.findAction')
+          },
+        },
+      ],
+    },
+  ]
+
+  const menu = Menu.buildFromTemplate(template)
+  Menu.setApplicationMenu(menu)
+}
 
 function createWindow() {
   win = new BrowserWindow({
@@ -43,7 +194,7 @@ function createWindow() {
     icon: path.join(process.env.VITE_PUBLIC || RENDERER_DIST, 'icon.png'),
   })
 
-  // Window state notification for renderer custom controls
+  // Window state notification for renderer custom controls and layout
   win.on('maximize', () => {
     win?.webContents.send('window:maximized-change', true)
   })
@@ -51,9 +202,20 @@ function createWindow() {
     win?.webContents.send('window:maximized-change', false)
   })
 
+  win.on('enter-full-screen', () => {
+    win?.webContents.send('window:fullscreen-change', true)
+  })
+  win.on('leave-full-screen', () => {
+    win?.webContents.send('window:fullscreen-change', false)
+  })
+
+  win.on('closed', () => {
+    win = null
+  })
+
   // Test active push message to Renderer-process.
   win.webContents.on('did-finish-load', () => {
-    win?.webContents.send('main-process-message', (new Date).toLocaleString())
+    win?.webContents.send('main-process-message', new Date().toLocaleString())
   })
 
   if (process.env.VITE_DEV_SERVER_URL) {
@@ -78,6 +240,7 @@ app.on('activate', () => {
 })
 
 app.whenReady().then(() => {
+  setupApplicationMenu()
   createWindow()
 
   // IPC handlers for saving / opening files
@@ -159,5 +322,9 @@ app.whenReady().then(() => {
 
   ipcMain.handle('window:isMaximized', () => {
     return win?.isMaximized() ?? false
+  })
+
+  ipcMain.handle('window:isFullScreen', () => {
+    return win?.isFullScreen() ?? false
   })
 })

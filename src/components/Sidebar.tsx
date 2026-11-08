@@ -13,6 +13,7 @@ import {
 } from 'lucide-react'
 import { useManuscript } from '../context/ManuscriptContext'
 import { SceneStatus } from '../types/manuscript'
+import { formatKeyDisplay } from '../types/keymap'
 
 interface SidebarProps {
   onClose?: () => void
@@ -139,7 +140,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ onClose, width, onWidthChange 
                 return next
               })
             }}
-            title="Search Manuscript (Ctrl+F)"
+            title={`Search Manuscript (${formatKeyDisplay('Ctrl+F')})`}
             className={`p-1.5 rounded-md transition-colors cursor-pointer ${
               searchQuery
                 ? 'bg-accent-soft text-accent'
@@ -153,7 +154,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ onClose, width, onWidthChange 
           {onClose && (
             <button
               onClick={onClose}
-              title="Close Manuscript Panel (Ctrl+\)"
+              title={`Close Manuscript Panel (${formatKeyDisplay('Ctrl+\\')})`}
               className="p-1.5 rounded-md text-muted-theme hover:text-main hover:bg-surface transition-colors cursor-pointer"
             >
               <PanelLeftClose className="w-3.5 h-3.5" />

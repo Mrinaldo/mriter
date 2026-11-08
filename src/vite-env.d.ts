@@ -15,7 +15,10 @@ interface Window {
     maximizeWindow?: () => Promise<boolean>;
     closeWindow?: () => Promise<boolean>;
     isWindowMaximized?: () => Promise<boolean>;
-    onWindowMaximizedChange?: (callback: (isMaximized: boolean) => void) => void;
+    onWindowMaximizedChange?: (callback: (isMaximized: boolean) => void) => (() => void) | void;
+    isWindowFullScreen?: () => Promise<boolean>;
+    onWindowFullScreenChange?: (callback: (isFullScreen: boolean) => void) => (() => void) | void;
+    onMenuAction?: (callback: (action: string) => void) => (() => void) | void;
     platform?: string;
     onMainMessage: (callback: (message: string) => void) => void;
   };

@@ -60,16 +60,31 @@ npm run dev
 npm run dev:web
 ```
 
-### Packaging Desktop Installers (.exe, .dmg, .AppImage)
+### Packaging Desktop Installers (.exe, .dmg, .zip, .AppImage)
 ```bash
 # Build desktop installer for your current OS
 npm run dist
 
 # Specific platforms:
-npm run dist:win    # Windows installer & portable executable (.exe)
-npm run dist:mac    # macOS DMG (.dmg)
-npm run dist:linux  # Linux AppImage
+npm run dist:win            # Windows installer & portable executable (.exe)
+npm run dist:mac            # macOS Apple Silicon & Intel DMG and ZIP
+npm run dist:mac:arm64      # macOS Apple Silicon (M1/M2/M3/M4)
+npm run dist:mac:x64        # macOS Intel
+npm run dist:mac:universal  # macOS Universal Binary
+npm run dist:linux          # Linux AppImage
 ```
+
+---
+
+## 🍎 macOS First-Class Support
+
+Mriter is built from the ground up to feel like a native macOS application:
+- **Native macOS Window Controls**: Clean frameless window with macOS traffic lights (Close, Minimize, Zoom) positioned with native inset padding.
+- **Dynamic Full-Screen Handling**: When entering macOS full-screen space, layout automatically shifts to standard padding as traffic lights move to the macOS menubar.
+- **macOS System Menu Bar**: Full system menu integration with standard macOS keyboard shortcuts (`⌘Q` Quit, `⌘W` Close, `⌘,` Preferences, `⌘Z` Undo, `⌘⇧Z` Redo, `⌘X` Cut, `⌘C` Copy, `⌘V` Paste, `⌘A` Select All).
+- **Apple Silicon & Intel Universal Binaries**: Fully optimized builds packaged in both `.dmg` (drag-and-drop to Applications folder) and `.zip` archives.
+- **macOS Entitlements & Hardened Runtime**: Includes Apple Hardened Runtime entitlements for Gatekeeper validation.
+- **Retina Icon & Typography Smoothing**: Multi-resolution `icon.icns` (16px to 1024px Retina) and subpixel font antialiasing (`-webkit-font-smoothing: antialiased`).
 
 ---
 
@@ -89,26 +104,34 @@ Releases are fully automated with GitHub Actions via `.github/workflows/release.
    git tag v1.0.1
    git push origin main --tags
    ```
-4. GitHub Actions will automatically:
-   - Spin up a clean Windows build runner.
-   - Compile and package `Mriter Setup 1.0.1.exe` (NSIS Installer) and `Mriter 1.0.1.exe` (Portable).
-   - Create a GitHub Release under your repository with the installer assets and release checksums attached.
+4. GitHub Actions runs a multi-platform matrix (`windows-latest` and `macos-latest`) and will automatically:
+   - Compile and package Windows NSIS (`.exe`) and portable builds.
+   - Compile and package macOS Apple Silicon (`arm64`) and Intel (`x64`) `.dmg` and `.zip` bundles.
+   - Create a GitHub Release under your repository with all platform assets attached.
 
-> **Data Safety Guarantee**: Upgrades overwrite only application binaries in `AppData\Local\Programs\Mriter`. User manuscript data, story bibles, and settings in `AppData\Roaming\Mriter` are completely isolated and preserved across installations and updates.
+> **Data Safety Guarantee**: Upgrades overwrite only application binaries. User manuscript data, story bibles, and settings in system app data are completely isolated and preserved across installations and updates.
 
 ---
 
 ## ⌨️ Keyboard Shortcuts
 
-| Shortcut | Action |
-| :--- | :--- |
-| `Ctrl + S` | Save Manuscript Project (`.mriter`) |
-| `Ctrl + B` | Bold text |
-| `Ctrl + I` | Italic text |
-| `Ctrl + Alt + 1` | Chapter Heading 1 |
-| `Ctrl + Alt + 2` | Section Heading 2 |
-| `F11` | Toggle Zen Distraction-Free Mode |
-| `Esc` | Exit Zen Mode |
+Mriter automatically detects your operating system and adapts keyboard shortcuts:
+
+| Action | Windows / Linux | macOS |
+| :--- | :--- | :--- |
+| **Save Manuscript Project** | `Ctrl + S` | `⌘S` |
+| **New Manuscript...** | `Ctrl + Alt + M` | `⌥⌘M` |
+| **Open Manuscript File** | `Ctrl + O` | `⌘O` |
+| **Find Action / Command Palette** | `Ctrl + Shift + A` / `Ctrl + K` | `⌘⇧A` / `⌘K` |
+| **Keymap Settings & Preferences** | `Ctrl + Alt + K` | `⌘,` / `⌥⌘K` |
+| **Toggle Zen Distraction-Free Mode** | `F11` | `F11` / `⎋` |
+| **Toggle Binder Sidebar** | `Ctrl + \` | `⌘\` |
+| **Toggle Scene Inspector** | `Ctrl + Alt + I` | `⌥⌘I` |
+| **Typewriter Scrolling Mode** | `Ctrl + Shift + T` | `⌘⇧T` |
+| **Next / Previous Scene** | `Alt + ↓` / `Alt + ↑` | `⌥↓` / `⌥↑` |
+| **Bold / Italic** | `Ctrl + B` / `Ctrl + I` | `⌘B` / `⌘I` |
+| **Heading 1 / Heading 2** | `Ctrl + Alt + 1` / `Ctrl + Alt + 2` | `⌥⌘1` / `⌥⌘2` |
+| **Insert Scene Break (✦ ✦ ✦)** | `Ctrl + Enter` | `⌘↵` |
 
 ---
 

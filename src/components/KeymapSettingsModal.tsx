@@ -13,7 +13,7 @@ import {
 } from 'lucide-react'
 import { useKeymap } from '../context/KeymapContext'
 import { useManuscript } from '../context/ManuscriptContext'
-import { KeymapAction, KeymapCategory, normalizeKeyEvent } from '../types/keymap'
+import { KeymapAction, KeymapCategory, normalizeKeyEvent, isMacOS } from '../types/keymap'
 
 const CATEGORIES: ('All' | KeymapCategory)[] = [
   'All',
@@ -49,6 +49,7 @@ export const KeymapSettingsModal: React.FC = () => {
 
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedCategory, setSelectedCategory] = useState<'All' | KeymapCategory>('All')
+  const isMac = isMacOS()
   
   // Key Recorder State
   const [editingAction, setEditingAction] = useState<KeymapAction | null>(null)
@@ -194,7 +195,7 @@ export const KeymapSettingsModal: React.FC = () => {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Filter actions or search shortcut (e.g. 'Ctrl+S')..."
+              placeholder={isMac ? "Filter actions or search shortcut (e.g. '⌘S')..." : "Filter actions or search shortcut (e.g. 'Ctrl+S')..."}
               className="w-full bg-panel text-main text-xs pl-8 pr-3 py-1.5 rounded-md border border-subtle focus:border-accent outline-none placeholder:text-faint font-sans"
             />
           </div>
@@ -304,7 +305,7 @@ export const KeymapSettingsModal: React.FC = () => {
             Click <Edit2 className="w-3 h-3 inline mx-0.5 text-faint" /> to record a new key combination.
           </span>
           <span>
-            Press <kbd className="font-mono bg-surface px-1.5 py-0.5 rounded border border-subtle">Ctrl+Shift+A</kbd> anytime for Find Action.
+            Press <kbd className="font-mono bg-surface px-1.5 py-0.5 rounded border border-subtle">{formatKeyDisplay(getKeyForAction('system.findAction'))}</kbd> anytime for Find Action.
           </span>
         </div>
       </div>
