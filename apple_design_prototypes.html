@@ -1,0 +1,932 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Mriter — Apple Design Ideology & HIG Prototypes</title>
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <style>
+    /* Apple System Font Stack */
+    :root {
+      --apple-font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue", Helvetica, Arial, sans-serif;
+      --apple-serif: "New York", "Charter", "Georgia", "Times New Roman", serif;
+      --apple-mono: "SF Mono", Menlo, Monaco, Consolas, monospace;
+      
+      /* macOS Sonoma / Sequoia Light Theme */
+      --mac-bg-canvas: #f6f5f3;
+      --mac-bg-paper: #ffffff;
+      --mac-toolbar-bg: rgba(255, 255, 255, 0.72);
+      --mac-toolbar-border: rgba(0, 0, 0, 0.08);
+      --mac-card-bg: rgba(255, 255, 255, 0.65);
+      --mac-card-border: rgba(0, 0, 0, 0.07);
+      --mac-specular: inset 0 1px 0 rgba(255, 255, 255, 0.85);
+      --mac-text-primary: #1d1d1f;
+      --mac-text-secondary: #6e6e73;
+      --mac-text-tertiary: #86868b;
+      --mac-accent: #0071e3;
+      --mac-accent-soft: rgba(0, 113, 227, 0.12);
+      --mac-ring-track: rgba(0, 0, 0, 0.06);
+      --mac-ring-fill: #34c759;
+      --mac-active-pill: #ffffff;
+      --mac-active-pill-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 0.5px 1px rgba(0,0,0,0.08);
+      --mac-popover-bg: rgba(255, 255, 255, 0.88);
+      --mac-shadow-window: 0 24px 60px -12px rgba(0, 0, 0, 0.18), 0 0 0 1px rgba(0, 0, 0, 0.06);
+    }
+
+    [data-apple-theme="dark"] {
+      /* macOS Sequoia Midnight Dark Theme */
+      --mac-bg-canvas: #121214;
+      --mac-bg-paper: #1c1c1e;
+      --mac-toolbar-bg: rgba(30, 30, 32, 0.75);
+      --mac-toolbar-border: rgba(255, 255, 255, 0.1);
+      --mac-card-bg: rgba(44, 44, 46, 0.65);
+      --mac-card-border: rgba(255, 255, 255, 0.08);
+      --mac-specular: inset 0 1px 0 rgba(255, 255, 255, 0.15);
+      --mac-text-primary: #f5f5f7;
+      --mac-text-secondary: #a1a1a6;
+      --mac-text-tertiary: #636366;
+      --mac-accent: #2997ff;
+      --mac-accent-soft: rgba(41, 151, 255, 0.18);
+      --mac-ring-track: rgba(255, 255, 255, 0.1);
+      --mac-ring-fill: #30d158;
+      --mac-active-pill: rgba(255, 255, 255, 0.18);
+      --mac-active-pill-shadow: 0 1px 3px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.2);
+      --mac-popover-bg: rgba(36, 36, 38, 0.88);
+      --mac-shadow-window: 0 24px 70px -10px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.12);
+    }
+
+    [data-apple-theme="sepia"] {
+      /* Apple Books Warm Linen Sepia */
+      --mac-bg-canvas: #ece5d6;
+      --mac-bg-paper: #f8f4ec;
+      --mac-toolbar-bg: rgba(246, 240, 229, 0.82);
+      --mac-toolbar-border: rgba(138, 116, 92, 0.15);
+      --mac-card-bg: rgba(238, 230, 215, 0.7);
+      --mac-card-border: rgba(138, 116, 92, 0.12);
+      --mac-specular: inset 0 1px 0 rgba(255, 255, 255, 0.9);
+      --mac-text-primary: #2d261e;
+      --mac-text-secondary: #6e6150;
+      --mac-text-tertiary: #9c8e7a;
+      --mac-accent: #a36224;
+      --mac-accent-soft: rgba(163, 98, 36, 0.14);
+      --mac-ring-track: rgba(138, 116, 92, 0.15);
+      --mac-ring-fill: #a36224;
+      --mac-active-pill: #ffffff;
+      --mac-active-pill-shadow: 0 1px 3px rgba(78, 60, 40, 0.12);
+      --mac-popover-bg: rgba(248, 244, 236, 0.94);
+      --mac-shadow-window: 0 24px 60px -12px rgba(78, 60, 40, 0.15), 0 0 0 1px rgba(138, 116, 92, 0.12);
+    }
+
+    body {
+      font-family: var(--apple-font);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .font-apple-serif {
+      font-family: var(--apple-serif);
+    }
+
+    .font-apple-mono {
+      font-family: var(--apple-mono);
+    }
+
+    /* Apple Frosted Glass Translucency */
+    .apple-glass {
+      background-color: var(--mac-toolbar-bg);
+      backdrop-filter: blur(25px) saturate(180%);
+      -webkit-backdrop-filter: blur(25px) saturate(180%);
+      border-color: var(--mac-toolbar-border);
+      box-shadow: var(--mac-specular);
+    }
+
+    .apple-card {
+      background-color: var(--mac-card-bg);
+      backdrop-filter: blur(16px);
+      border-color: var(--mac-card-border);
+      box-shadow: var(--mac-specular);
+    }
+
+    .apple-popover {
+      background-color: var(--mac-popover-bg);
+      backdrop-filter: blur(30px) saturate(190%);
+      -webkit-backdrop-filter: blur(30px) saturate(190%);
+      box-shadow: 0 16px 40px -8px rgba(0,0,0,0.22), 0 0 0 0.5px var(--mac-toolbar-border);
+    }
+
+    .window-chassis {
+      box-shadow: var(--mac-shadow-window);
+    }
+
+    /* Traffic Light hover effect */
+    .traffic-light-container:hover .traffic-glyph {
+      opacity: 0.85;
+    }
+
+    .smooth-spring {
+      transition: all 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    /* Range slider custom styling */
+    input[type=range]::-webkit-slider-thumb {
+      appearance: none;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #0071e3;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body class="bg-neutral-100 text-neutral-800 p-4 md:p-8 min-h-screen">
+
+  <div class="max-w-7xl mx-auto space-y-6">
+
+    <!-- ======================================================== -->
+    <!-- HEADER: CONTROL CENTER & PHILOSOPHY BENCHMARK            -->
+    <!-- ======================================================== -->
+    <header class="bg-white rounded-2xl p-6 shadow-sm border border-neutral-200/80 space-y-5">
+      <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+        <div>
+          <div class="flex items-center gap-2.5">
+            <span class="w-8 h-8 rounded-xl bg-gradient-to-br from-neutral-800 to-neutral-950 text-white flex items-center justify-center font-apple-serif font-bold text-base shadow-sm">
+              
+            </span>
+            <div>
+              <h1 class="text-xl font-bold tracking-tight text-neutral-900 flex items-center gap-2">
+                Mriter — Apple Design Ideology Prototypes
+              </h1>
+              <p class="text-xs text-neutral-500 mt-0.5">
+                Translating Apple Human Interface Guidelines (HIG), macOS Sequoia unified toolbars & visionOS glass aesthetics to a novelist studio.
+              </p>
+              <div class="mt-2 flex items-center gap-2">
+                <a href="topbar_prototypes.html" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-neutral-100 hover:bg-neutral-200 text-neutral-700 border border-neutral-300 text-xs font-semibold transition-colors">
+                  <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+                  <span>Back to Standard Top Bar Prototypes</span>
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Global Theme Controls -->
+        <div class="flex items-center gap-2 bg-neutral-100 p-1.5 rounded-xl border border-neutral-200 shrink-0">
+          <span class="text-xs font-semibold text-neutral-500 px-2 uppercase tracking-wider">Appearance:</span>
+          <button onclick="setAppleTheme('light')" id="btn-theme-light" class="px-3 py-1.5 text-xs font-medium rounded-lg bg-white shadow-xs text-neutral-900 flex items-center gap-1.5 transition-all">
+            <span class="w-2.5 h-2.5 rounded-full bg-blue-500 inline-block"></span>
+            macOS Light
+          </button>
+          <button onclick="setAppleTheme('dark')" id="btn-theme-dark" class="px-3 py-1.5 text-xs font-medium rounded-lg text-neutral-600 hover:text-neutral-900 flex items-center gap-1.5 transition-all">
+            <span class="w-2.5 h-2.5 rounded-full bg-neutral-800 inline-block"></span>
+            Midnight Dark
+          </button>
+          <button onclick="setAppleTheme('sepia')" id="btn-theme-sepia" class="px-3 py-1.5 text-xs font-medium rounded-lg text-neutral-600 hover:text-neutral-900 flex items-center gap-1.5 transition-all">
+            <span class="w-2.5 h-2.5 rounded-full bg-amber-600 inline-block"></span>
+            Books Sepia
+          </button>
+        </div>
+      </div>
+
+      <!-- Resizing Simulator & Breakpoint Presets -->
+      <div class="pt-4 border-t border-neutral-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div class="flex items-center gap-3 flex-1">
+          <span class="text-xs font-semibold text-neutral-500 shrink-0 flex items-center gap-1.5">
+            <svg class="w-4 h-4 text-neutral-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+            Viewport Width:
+          </span>
+          <input type="range" id="appleWidthSlider" min="760" max="1360" value="1180" step="10" 
+                 class="w-full h-2 bg-neutral-200 rounded-lg appearance-none cursor-pointer" 
+                 oninput="updateAppleWidth(this.value)">
+          <span id="appleWidthValue" class="text-xs font-apple-mono font-bold bg-neutral-100 text-neutral-800 px-2.5 py-1 rounded-md border border-neutral-200 shrink-0 w-20 text-center">
+            1180px
+          </span>
+        </div>
+
+        <!-- Presets -->
+        <div class="flex items-center gap-1.5 shrink-0">
+          <span class="text-xs font-semibold text-neutral-400 mr-1">Presets:</span>
+          <button onclick="setAppleWidthPreset(1360)" class="px-2.5 py-1 text-xs bg-neutral-100 hover:bg-neutral-200 rounded-md text-neutral-700 font-medium">
+            1360px <span class="text-neutral-400 font-normal">iMac / Studio</span>
+          </button>
+          <button onclick="setAppleWidthPreset(1180)" class="px-2.5 py-1 text-xs bg-blue-50 text-blue-900 border border-blue-200 rounded-md font-medium" id="preset-1180">
+            1180px <span class="text-blue-700 font-normal">MacBook</span>
+          </button>
+          <button onclick="setAppleWidthPreset(940)" class="px-2.5 py-1 text-xs bg-neutral-100 hover:bg-neutral-200 rounded-md text-neutral-700 font-medium">
+            940px <span class="text-neutral-400 font-normal">iPad Stage</span>
+          </button>
+          <button onclick="setAppleWidthPreset(760)" class="px-2.5 py-1 text-xs bg-neutral-100 hover:bg-neutral-200 rounded-md text-neutral-700 font-medium">
+            760px <span class="text-neutral-400 font-normal">Split View</span>
+          </button>
+        </div>
+      </div>
+    </header>
+
+
+    <!-- ======================================================== -->
+    <!-- PROTOTYPE CANVAS WRAPPER (Dynamically resized via slider)-->
+    <!-- ======================================================== -->
+    <div id="appleViewport" class="mx-auto smooth-spring space-y-10" style="width: 1180px; max-width: 100%;">
+
+      <!-- ==================================================================== -->
+      <!-- PROTOTYPE 1: THE ADAPTIVE HYBRID UNIFIED STUDIO (HIG & OS AWARE)     -->
+      <!-- ==================================================================== -->
+      <section class="bg-white rounded-3xl p-5 shadow-sm border border-neutral-200/80 space-y-4">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div class="flex items-center gap-2.5">
+            <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold tracking-wide uppercase bg-blue-100 text-blue-800">
+              Prototype 1 · Selected Direction
+            </span>
+            <h2 class="text-base font-bold text-neutral-900">
+              The Adaptive Hybrid Unified Studio
+            </h2>
+          </div>
+
+          <!-- Interactive OS Adaptability Switcher -->
+          <div class="flex items-center gap-1.5 bg-neutral-100 p-1 rounded-xl border border-neutral-200/80 text-xs">
+            <span class="text-[10px] font-semibold text-neutral-400 px-1.5 uppercase">Host OS:</span>
+            <button onclick="setOsMode('macos')" id="btn-os-macos" class="px-2.5 py-1 rounded-lg bg-white shadow-xs text-neutral-900 font-medium flex items-center gap-1.5 transition-all">
+              <span></span> macOS Sequoia
+            </button>
+            <button onclick="setOsMode('windows')" id="btn-os-windows" class="px-2.5 py-1 rounded-lg text-neutral-600 hover:text-neutral-900 font-medium flex items-center gap-1.5 transition-all">
+              <span class="text-[10px]">⊞</span> Windows 11
+            </button>
+            <button onclick="setOsMode('web')" id="btn-os-web" class="px-2.5 py-1 rounded-lg text-neutral-600 hover:text-neutral-900 font-medium flex items-center gap-1.5 transition-all">
+              <span>🌐</span> Web / Chrome
+            </button>
+          </div>
+        </div>
+
+        <p class="text-xs text-neutral-500">
+          Combines Apple's unified frosted glass surface & tactile sliding segmented control with adaptive host window controls (traffic lights on macOS vs native caption buttons on Windows).
+        </p>
+
+        <!-- Window Mockup -->
+        <div class="apple-prototype-root rounded-2xl overflow-hidden window-chassis smooth-spring transition-colors" data-apple-theme="light">
+          
+          <!-- Unified macOS / Windows Adaptive Toolbar -->
+          <div id="p1-toolbar-container" class="h-13 apple-glass border-b flex items-center justify-between px-3 select-none relative" style="color: var(--mac-text-primary);">
+            
+            <!-- LEFT: Traffic Lights (macOS) OR Monogram (Windows/Web) + Dual Sidebar Control -->
+            <div class="flex items-center gap-2.5 shrink-0">
+              <!-- Authentic macOS Traffic Lights (Visible only in macOS mode) -->
+              <div id="p1-macos-traffic-lights" class="traffic-light-container flex items-center gap-2 pl-1 pr-2 py-1">
+                <!-- Close -->
+                <button title="Close" class="w-3 h-3 rounded-full bg-[#FF5F56] border border-[#E0443E] flex items-center justify-center text-[#4A0002] transition-transform active:scale-90">
+                  <span class="traffic-glyph opacity-0 text-[8px] font-bold leading-none select-none">✕</span>
+                </button>
+                <!-- Minimize -->
+                <button title="Minimize" class="w-3 h-3 rounded-full bg-[#FFBD2E] border border-[#DEA123] flex items-center justify-center text-[#5A3800] transition-transform active:scale-90">
+                  <span class="traffic-glyph opacity-0 text-[8px] font-bold leading-none select-none">−</span>
+                </button>
+                <!-- Zoom / Fullscreen -->
+                <button title="Fullscreen" class="w-3 h-3 rounded-full bg-[#27C93F] border border-[#1AAB29] flex items-center justify-center text-[#003B08] transition-transform active:scale-90">
+                  <span class="traffic-glyph opacity-0 text-[7px] font-bold leading-none select-none">＋</span>
+                </button>
+              </div>
+
+              <!-- Windows / Web Monogram Brand Mark (Visible in Windows / Web mode) -->
+              <div id="p1-win-monogram" class="hidden items-center gap-2 pr-1">
+                <div class="w-6 h-6 rounded-md bg-neutral-900 text-white dark:bg-white dark:text-neutral-900 flex items-center justify-center font-apple-serif font-bold text-xs shadow-xs">
+                  M
+                </div>
+              </div>
+
+              <!-- Leading Sidebar Toggle (Apple HIG: sidebar.leading) -->
+              <button title="Toggle Binder Sidebar (⌘1 / Ctrl+\)" class="p-1.5 rounded-lg hover:bg-black/5 dark:hover:bg-white/10 active:scale-95 transition-all text-neutral-500 hover:text-neutral-800 dark:hover:text-white">
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                  <line x1="9" y1="3" x2="9" y2="21" />
+                </svg>
+              </button>
+
+              <!-- Document Proxy Icon + Manuscript Title Dropdown -->
+              <div class="relative">
+                <button onclick="toggleAppleMenu('p1-doc-proxy-sheet')" 
+                        class="flex items-center gap-2 px-2 py-1 rounded-lg hover:bg-black/5 dark:hover:bg-white/10 active:scale-98 transition-all group">
+                  <!-- macOS / Desktop Document Proxy Icon -->
+                  <div class="w-5 h-6 rounded-sm bg-neutral-200 dark:bg-neutral-700/80 border border-neutral-300 dark:border-neutral-600 flex items-center justify-center shadow-2xs group-hover:shadow-xs transition-shadow">
+                    <svg class="w-3.5 h-3.5 text-neutral-600 dark:text-neutral-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/>
+                      <path d="M6 6h10M6 10h10"/>
+                    </svg>
+                  </div>
+
+                  <!-- Title Text & Chevron -->
+                  <div class="flex flex-col text-left">
+                    <div class="flex items-center gap-1">
+                      <span class="font-apple-serif font-semibold text-xs tracking-tight truncate max-w-[130px] sm:max-w-[180px]">
+                        The Alchemist's Secret
+                      </span>
+                      <svg class="w-2.5 h-2.5 text-neutral-400 group-hover:text-neutral-700 dark:group-hover:text-neutral-200 transition-colors" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m6 9 6 6 6-6"/></svg>
+                    </div>
+                    <span id="p1-save-status-text" class="text-[10px] text-neutral-400 font-sans tracking-normal hidden md:inline">
+                      Saved to iCloud · 42.6% complete
+                    </span>
+                  </div>
+                </button>
+
+                <!-- Document Inspector Sheet (Proxy popover) -->
+                <div id="p1-doc-proxy-sheet" class="hidden absolute top-full left-0 mt-2 w-72 apple-popover rounded-xl p-3 z-50 text-xs border border-neutral-200/50 animate-in fade-in duration-150">
+                  <div class="flex items-center gap-2.5 pb-2.5 border-b border-black/5 dark:border-white/10">
+                    <div class="w-9 h-11 rounded bg-neutral-200 dark:bg-neutral-700 flex items-center justify-center shadow-xs">
+                      <span class="font-apple-serif font-bold text-sm text-neutral-600 dark:text-neutral-300">📖</span>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                      <h4 class="font-semibold text-xs truncate">The Alchemist's Secret</h4>
+                      <p class="text-[10px] text-neutral-500 truncate" id="p1-proxy-filepath">~/Documents/Novels/Alchemist.mriter</p>
+                      <p class="text-[10px] text-neutral-400">842 KB · Modified 14 min ago</p>
+                    </div>
+                  </div>
+
+                  <div class="py-2 space-y-1">
+                    <button class="w-full text-left px-2 py-1.5 rounded-lg hover:bg-blue-500 hover:text-white flex items-center justify-between text-xs transition-colors group">
+                      <span>Rename Manuscript...</span>
+                      <span class="text-[10px] opacity-60">Return</span>
+                    </button>
+                    <button class="w-full text-left px-2 py-1.5 rounded-lg hover:bg-blue-500 hover:text-white flex items-center justify-between text-xs transition-colors group">
+                      <span>Duplicate File</span>
+                      <span class="text-[10px] opacity-60">⇧⌘S</span>
+                    </button>
+                    <button class="w-full text-left px-2 py-1.5 rounded-lg hover:bg-blue-500 hover:text-white flex items-center justify-between text-xs transition-colors group">
+                      <span>Revert to Previous Version...</span>
+                    </button>
+                    <button class="w-full text-left px-2 py-1.5 rounded-lg hover:bg-blue-500 hover:text-white flex items-center justify-between text-xs transition-colors group">
+                      <span id="p1-proxy-reveal-text">Show in Finder</span>
+                    </button>
+                  </div>
+
+                  <div class="pt-2 border-t border-black/5 dark:border-white/10 flex items-center justify-between text-[11px] text-neutral-500">
+                    <span>Project Target:</span>
+                    <span class="font-apple-mono font-medium text-neutral-800 dark:text-neutral-200">80,000 words</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- CENTER: Apple Sliding Segmented Control (HIG Paradigm) -->
+            <div class="shrink-0 relative">
+              <nav id="p1-segmented" class="relative flex items-center p-0.5 rounded-lg bg-black/[0.06] dark:bg-white/[0.08] border border-black/[0.04] dark:border-white/[0.06]">
+                <!-- Active Sliding Indicator Background -->
+                <div id="p1-pill-indicator" 
+                     class="absolute top-0.5 bottom-0.5 rounded-md transition-all duration-200 ease-out pointer-events-none" 
+                     style="left: 2px; width: 68px; background-color: var(--mac-active-pill); box-shadow: var(--mac-active-pill-shadow);">
+                </div>
+
+                <!-- Segment Buttons -->
+                <button onclick="setSegmentTab(0, 68, 2)" class="p1-seg-btn relative z-10 px-3 py-1 text-xs font-medium tracking-tight text-neutral-900 dark:text-white flex items-center gap-1.5">
+                  <svg class="w-3.5 h-3.5 opacity-80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                  <span class="p1-seg-text">Write</span>
+                </button>
+                <button onclick="setSegmentTab(1, 74, 72)" class="p1-seg-btn relative z-10 px-3 py-1 text-xs font-medium tracking-tight text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white flex items-center gap-1.5">
+                  <svg class="w-3.5 h-3.5 opacity-80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+                  <span class="p1-seg-text">Outline</span>
+                </button>
+                <button onclick="setSegmentTab(2, 66, 148)" class="p1-seg-btn relative z-10 px-3 py-1 text-xs font-medium tracking-tight text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white flex items-center gap-1.5">
+                  <svg class="w-3.5 h-3.5 opacity-80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                  <span class="p1-seg-text">Bible</span>
+                </button>
+                <button onclick="setSegmentTab(3, 78, 216)" class="p1-seg-btn relative z-10 px-3 py-1 text-xs font-medium tracking-tight text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white flex items-center gap-1.5">
+                  <svg class="w-3.5 h-3.5 opacity-80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                  <span class="p1-seg-text">Publish</span>
+                </button>
+              </nav>
+            </div>
+
+            <!-- RIGHT: Word Activity Ring Capsule + Spotlight + Inspector Toggle -->
+            <div class="flex items-center gap-2.5 shrink-0">
+              
+              <!-- Apple Activity Ring / Word Goal Pill -->
+              <div class="relative">
+                <button onclick="toggleAppleMenu('p1-word-stats-popover')" 
+                        class="flex items-center gap-2 px-2.5 py-1 rounded-full bg-black/[0.04] dark:bg-white/[0.06] hover:bg-black/[0.08] dark:hover:bg-white/[0.1] border border-black/[0.04] dark:border-white/[0.06] active:scale-95 transition-all group">
+                  <!-- Circular Activity Gauge (Apple Watch / Pages inspired) -->
+                  <div class="relative w-4 h-4 flex items-center justify-center">
+                    <svg class="w-4 h-4 -rotate-90" viewBox="0 0 36 36">
+                      <!-- Track -->
+                      <circle cx="18" cy="18" r="14" fill="none" stroke="currentColor" stroke-width="3.5" class="opacity-15" />
+                      <!-- Progress ring (42.6%) -->
+                      <circle cx="18" cy="18" r="14" fill="none" stroke="currentColor" stroke-width="3.5"
+                              stroke-dasharray="88" stroke-dashoffset="50.5" stroke-linecap="round"
+                              style="color: var(--mac-ring-fill);" />
+                    </svg>
+                  </div>
+                  <div class="text-[11px] font-apple-mono flex items-center gap-1">
+                    <span class="font-semibold">34,120</span>
+                    <span class="text-neutral-400 hidden lg:inline">/ 80k w</span>
+                  </div>
+                </button>
+
+                <!-- Apple Health / Writing Stats Popover -->
+                <div id="p1-word-stats-popover" class="hidden absolute top-full right-0 mt-2 w-72 apple-popover rounded-2xl p-4 z-50 text-xs border border-neutral-200/50 animate-in fade-in duration-150">
+                  <div class="flex items-center justify-between pb-3 border-b border-black/5 dark:border-white/10">
+                    <div>
+                      <h4 class="font-bold text-xs tracking-tight text-neutral-900 dark:text-white">Writing Goals & Pace</h4>
+                      <p class="text-[11px] text-neutral-500">Today's Writing Session</p>
+                    </div>
+                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300">
+                      On Pace
+                    </span>
+                  </div>
+
+                  <!-- Ring Metric Cards -->
+                  <div class="grid grid-cols-2 gap-2 my-3">
+                    <div class="p-2.5 rounded-xl bg-black/[0.03] dark:bg-white/[0.04] border border-black/[0.03]">
+                      <span class="text-[10px] text-neutral-400 font-medium uppercase tracking-wider">Today's Words</span>
+                      <div class="text-lg font-bold font-apple-mono text-neutral-900 dark:text-white mt-0.5">1,240</div>
+                      <div class="text-[10px] text-green-600 font-medium">82% of daily 1,500w</div>
+                    </div>
+                    <div class="p-2.5 rounded-xl bg-black/[0.03] dark:bg-white/[0.04] border border-black/[0.03]">
+                      <span class="text-[10px] text-neutral-400 font-medium uppercase tracking-wider">Novel Target</span>
+                      <div class="text-lg font-bold font-apple-mono text-neutral-900 dark:text-white mt-0.5">42.6%</div>
+                      <div class="text-[10px] text-neutral-500">45,880w remaining</div>
+                    </div>
+                  </div>
+
+                  <!-- Session Stats -->
+                  <div class="space-y-1.5 text-[11px] text-neutral-600 dark:text-neutral-300">
+                    <div class="flex justify-between">
+                      <span class="text-neutral-400">Current Scene Word Count</span>
+                      <span class="font-apple-mono font-medium">2,410 words</span>
+                    </div>
+                    <div class="flex justify-between">
+                      <span class="text-neutral-400">Estimated Reading Time</span>
+                      <span class="font-apple-mono font-medium">2 hr 18 min</span>
+                    </div>
+                    <div class="flex justify-between">
+                      <span class="text-neutral-400">Current Sprint Pace</span>
+                      <span class="font-apple-mono font-medium">41 wpm</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Quick Spotlight / Action Palette (⌘K) -->
+              <button title="Action Palette (⌘K)" class="p-1.5 rounded-lg hover:bg-black/5 dark:hover:bg-white/10 active:scale-95 transition-all text-neutral-500 hover:text-neutral-800 dark:hover:text-white">
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              </button>
+
+              <!-- Focus Zen Mode (Apple Focus Filters) -->
+              <button title="Distraction-Free Zen Mode (⌃⌘F)" class="p-1.5 rounded-lg hover:bg-black/5 dark:hover:bg-white/10 active:scale-95 transition-all text-neutral-500 hover:text-neutral-800 dark:hover:text-white">
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+              </button>
+
+              <!-- Trailing Inspector Toggle (Apple HIG: sidebar.trailing) -->
+              <button title="Toggle Scene Inspector (⌥⌘I / Ctrl+I)" class="p-1.5 rounded-lg bg-black/[0.04] dark:bg-white/[0.08] hover:bg-black/[0.08] dark:hover:bg-white/[0.12] active:scale-95 transition-all text-neutral-700 dark:text-neutral-200">
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                  <line x1="15" y1="3" x2="15" y2="21" />
+                </svg>
+              </button>
+
+              <!-- Windows 11 Fluent Caption Buttons (Visible in Windows mode) -->
+              <div id="p1-win-captions" class="hidden items-center h-13 -my-1 ml-2 pl-2 border-l border-black/10 dark:border-white/10 shrink-0">
+                <button title="Minimize" class="w-11 h-13 flex items-center justify-center hover:bg-black/5 dark:hover:bg-white/10 text-neutral-600 dark:text-neutral-300 transition-colors">
+                  <span class="w-2.5 h-[1.5px] bg-current"></span>
+                </button>
+                <button title="Maximize / Restore" class="w-11 h-13 flex items-center justify-center hover:bg-black/5 dark:hover:bg-white/10 text-neutral-600 dark:text-neutral-300 transition-colors">
+                  <span class="w-2.5 h-2.5 border-[1.2px] border-current rounded-[1px]"></span>
+                </button>
+                <button title="Close" class="w-11 h-13 flex items-center justify-center hover:bg-[#e81123] hover:text-white text-neutral-600 dark:text-neutral-300 transition-colors">
+                  <svg class="w-2.5 h-2.5" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M1 1l8 8M9 1L1 9"/></svg>
+                </button>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- Document Canvas Body Preview (Apple Pages Elegance) -->
+          <div class="p-8 min-h-[140px] flex flex-col items-center justify-center text-center transition-colors" 
+               style="background-color: var(--mac-bg-canvas); color: var(--mac-text-primary);">
+            <div class="max-w-md space-y-2">
+              <span class="text-[11px] font-bold tracking-widest uppercase text-neutral-400">Chapter III · The Alchemical Vault</span>
+              <p class="font-apple-serif text-lg leading-relaxed text-neutral-800 dark:text-neutral-100 italic">
+                “The iron hinges groaned against centuries of dust. Beyond lay the codex that three empires had waged quiet wars to conceal.”
+              </p>
+              <div class="flex items-center justify-center gap-2 pt-2 text-[11px] text-neutral-400">
+                <span>Typeset in New York 18pt</span>
+                <span>•</span>
+                <span>Centered Typewriter Guide</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- HIG Architectural Insights -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3 pt-2 text-xs text-neutral-600">
+          <div class="bg-neutral-50 p-3 rounded-xl border border-neutral-100">
+            <span class="font-bold text-neutral-800 flex items-center gap-1.5">
+              <span class="w-2 h-2 rounded-full bg-blue-500"></span>
+              1. Unified Vibrancy Toolbar
+            </span>
+            <p class="text-[11px] text-neutral-500 mt-1">
+              Merges titlebar and controls into a single frosted glass surface (`backdrop-blur-2xl`), eliminating redundant vertical stripes.
+            </p>
+          </div>
+          <div class="bg-neutral-50 p-3 rounded-xl border border-neutral-100">
+            <span class="font-bold text-neutral-800 flex items-center gap-1.5">
+              <span class="w-2 h-2 rounded-full bg-green-500"></span>
+              2. Interactive Activity Ring
+            </span>
+            <p class="text-[11px] text-neutral-500 mt-1">
+              Borrowing Apple Watch's iconic activity ring, authors see real-time circular sprint pace without visual clutter.
+            </p>
+          </div>
+          <div class="bg-neutral-50 p-3 rounded-xl border border-neutral-100">
+            <span class="font-bold text-neutral-800 flex items-center gap-1.5">
+              <span class="w-2 h-2 rounded-full bg-amber-500"></span>
+              3. Native Proxy Icon & HIG Chevrons
+            </span>
+            <p class="text-[11px] text-neutral-500 mt-1">
+              Clicking the document icon reveals version history, iCloud sync, and rename options, honoring 30 years of Mac OS design continuity.
+            </p>
+          </div>
+        </div>
+      </section>
+
+
+
+      <!-- ==================================================================== -->
+      <!-- PROTOTYPE 2: visionOS & macOS FLOATING GLASS ISLAND                  -->
+      <!-- ==================================================================== -->
+      <section class="bg-white rounded-3xl p-5 shadow-sm border border-neutral-200/80 space-y-4">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2.5">
+            <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold tracking-wide uppercase bg-purple-100 text-purple-800">
+              Prototype 2 · Spatial & Modern
+            </span>
+            <h2 class="text-base font-bold text-neutral-900">
+              The Floating Glass Island (visionOS & Floating Safari 18 HIG)
+            </h2>
+          </div>
+          <span class="text-xs text-neutral-500 hidden sm:inline">
+            Detached glass pill · Deep blur · Zero visual weight · Floats above the manuscript
+          </span>
+        </div>
+
+        <!-- Window Mockup with Floating Capsule -->
+        <div class="apple-prototype-root rounded-2xl overflow-hidden window-chassis smooth-spring relative" data-apple-theme="light" style="background-color: var(--mac-bg-canvas);">
+          
+          <!-- Ultra-minimal Window Frame Topbar (Just traffic lights and quiet status) -->
+          <div class="h-8 flex items-center justify-between px-3 select-none text-[11px]" style="color: var(--mac-text-tertiary);">
+            <div class="flex items-center gap-2">
+              <div class="traffic-light-container flex items-center gap-1.5">
+                <div class="w-2.5 h-2.5 rounded-full bg-[#FF5F56]/80"></div>
+                <div class="w-2.5 h-2.5 rounded-full bg-[#FFBD2E]/80"></div>
+                <div class="w-2.5 h-2.5 rounded-full bg-[#27C93F]/80"></div>
+              </div>
+              <span class="font-apple-serif text-[11px] pl-1 font-medium">The Alchemist's Secret</span>
+            </div>
+            <div class="flex items-center gap-2 text-[10px]">
+              <span>Typewriter Lock: Active</span>
+              <span>•</span>
+              <span>Focus: Do Not Disturb</span>
+            </div>
+          </div>
+
+          <!-- THE FLOATING GLASS CAPSULE (Floats centered right above content) -->
+          <div class="px-4 pb-2 pt-1 flex justify-center">
+            <div class="apple-glass rounded-full px-3 py-1.5 border flex items-center justify-between gap-4 shadow-lg smooth-spring"
+                 style="width: 85%; max-width: 820px; box-shadow: 0 10px 30px -5px rgba(0,0,0,0.12), var(--mac-specular);">
+              
+              <!-- Left: Sidebar + Chapter Breadcrumb -->
+              <div class="flex items-center gap-2">
+                <button class="p-1 rounded-full hover:bg-black/5 dark:hover:bg-white/10 text-neutral-600 dark:text-neutral-300">
+                  <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+                </button>
+                <div class="flex items-center gap-1 text-xs">
+                  <span class="font-bold truncate max-w-[100px]">Part II</span>
+                  <span class="text-neutral-400">›</span>
+                  <span class="text-neutral-500 truncate max-w-[140px]">Ch 4: Silent Echoes</span>
+                </div>
+              </div>
+
+              <!-- Center: visionOS Pill Mode Switcher -->
+              <div class="flex items-center gap-1 bg-black/[0.04] dark:bg-white/[0.06] p-0.5 rounded-full border border-black/[0.04]">
+                <button class="px-3 py-0.5 rounded-full text-xs font-semibold bg-white dark:bg-neutral-700 shadow-2xs text-neutral-900 dark:text-white">
+                  Write
+                </button>
+                <button class="px-3 py-0.5 rounded-full text-xs font-medium text-neutral-500 hover:text-neutral-900 dark:hover:text-white">
+                  Outline
+                </button>
+                <button class="px-3 py-0.5 rounded-full text-xs font-medium text-neutral-500 hover:text-neutral-900 dark:hover:text-white">
+                  Bible
+                </button>
+                <button class="px-3 py-0.5 rounded-full text-xs font-medium text-neutral-500 hover:text-neutral-900 dark:hover:text-white">
+                  Publish
+                </button>
+              </div>
+
+              <!-- Right: Dynamic Island Capsule (Target & Status) -->
+              <div class="flex items-center gap-2">
+                <div class="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-green-500/10 text-green-700 dark:text-green-400 text-[11px] font-apple-mono">
+                  <span class="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
+                  <span>34.1k w</span>
+                </div>
+                <button title="Inspector" class="p-1 rounded-full hover:bg-black/5 dark:hover:bg-white/10 text-neutral-600 dark:text-neutral-300">
+                  <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+                </button>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- Manuscript Paper Canvas -->
+          <div class="p-8 min-h-[120px] flex items-center justify-center text-center">
+            <p class="font-apple-serif text-sm text-neutral-500 max-w-lg italic">
+              “The floating capsule floats effortlessly above the manuscript sheet, giving authors a sense of infinite, borderless literary canvas.”
+            </p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2 text-xs text-neutral-600">
+          <div class="bg-neutral-50 p-3 rounded-xl border border-neutral-100">
+            <span class="font-bold text-neutral-800">Spatial Deference</span>
+            <p class="text-[11px] text-neutral-500 mt-0.5">Controls exist in a floating layer above the paper. When typing begins, the capsule dims to 20% opacity for absolute immersion.</p>
+          </div>
+          <div class="bg-neutral-50 p-3 rounded-xl border border-neutral-100">
+            <span class="font-bold text-neutral-800">visionOS Glass Capsule</span>
+            <p class="text-[11px] text-neutral-500 mt-0.5">Deep frosted pill with soft ambient lighting adapts seamlessly across ambient light and dark environments.</p>
+          </div>
+        </div>
+      </section>
+
+
+
+      <!-- ==================================================================== -->
+      <!-- PROTOTYPE 3: APPLE NOTES / ULYSSES NATIVE LITERARY MINIMALIST        -->
+      <!-- ==================================================================== -->
+      <section class="bg-white rounded-3xl p-5 shadow-sm border border-neutral-200/80 space-y-4">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2.5">
+            <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold tracking-wide uppercase bg-amber-100 text-amber-800">
+              Prototype 3 · Editorial Focus
+            </span>
+            <h2 class="text-base font-bold text-neutral-900">
+              The Apple Notes & Ulysses Literary Minimalist (Warm Paper HIG)
+            </h2>
+          </div>
+          <span class="text-xs text-neutral-500 hidden sm:inline">
+            Split-view integration · Breadcrumbs · Contextual action toolbar
+          </span>
+        </div>
+
+        <!-- Window Mockup -->
+        <div class="apple-prototype-root rounded-2xl overflow-hidden window-chassis smooth-spring" data-apple-theme="light">
+          
+          <!-- Unified Header with 3-Column Split Visual Cue -->
+          <div class="h-12 apple-glass border-b flex items-center justify-between px-3 select-none" style="color: var(--mac-text-primary);">
+            
+            <!-- Left: Traffic Lights seamlessly tucked into the Binder column header -->
+            <div class="flex items-center gap-3 w-48 shrink-0">
+              <div class="traffic-light-container flex items-center gap-1.5">
+                <div class="w-3 h-3 rounded-full bg-[#FF5F56]"></div>
+                <div class="w-3 h-3 rounded-full bg-[#FFBD2E]"></div>
+                <div class="w-3 h-3 rounded-full bg-[#27C93F]"></div>
+              </div>
+              <span class="text-xs font-semibold tracking-tight text-neutral-500">Manuscript</span>
+            </div>
+
+            <!-- Center: Elegant New York Breadcrumb Navigation -->
+            <div class="flex items-center gap-2 text-xs font-apple-serif">
+              <span class="font-bold text-neutral-900 dark:text-white">The Alchemist's Secret</span>
+              <span class="text-neutral-400">/</span>
+              <span class="text-neutral-600 dark:text-neutral-300">Act II</span>
+              <span class="text-neutral-400">/</span>
+              <span class="text-neutral-500 italic">Scene 3: The Midnight Laboratory</span>
+            </div>
+
+            <!-- Right: Minimalist Editorial Tools -->
+            <div class="flex items-center gap-2 shrink-0">
+              <span class="text-[11px] font-apple-mono text-neutral-500 bg-black/5 dark:bg-white/10 px-2 py-0.5 rounded-md">
+                34.1k words
+              </span>
+              <button class="p-1.5 rounded-md hover:bg-black/5 dark:hover:bg-white/10 text-neutral-600 dark:text-neutral-300">
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+              </button>
+              <button class="p-1.5 rounded-md hover:bg-black/5 dark:hover:bg-white/10 text-neutral-600 dark:text-neutral-300">
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- Document Body -->
+          <div class="p-6 min-h-[110px] flex items-center justify-center text-xs font-apple-serif text-neutral-500" 
+               style="background-color: var(--mac-bg-paper);">
+            [Pure distraction-free writing canvas: The chrome recedes entirely, leaving the writer immersed in prose]
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2 text-xs text-neutral-600">
+          <div class="bg-neutral-50 p-3 rounded-xl border border-neutral-100">
+            <span class="font-bold text-neutral-800">Apple Books Typography</span>
+            <p class="text-[11px] text-neutral-500 mt-0.5">Typeset using Apple's proprietary New York serif with optically sized weights for comfortable multi-hour reading.</p>
+          </div>
+          <div class="bg-neutral-50 p-3 rounded-xl border border-neutral-100">
+            <span class="font-bold text-neutral-800">Columnar Continuity</span>
+            <p class="text-[11px] text-neutral-500 mt-0.5">Traffic lights align perfectly with the width of the binder sidebar below, mirroring macOS Finder and Apple Mail.</p>
+          </div>
+        </div>
+      </section>
+
+    </div>
+
+
+    <!-- ======================================================== -->
+    <!-- PHILOSOPHICAL COMPARISON MATRIX                          -->
+    <!-- ======================================================== -->
+    <footer class="bg-white rounded-3xl p-6 shadow-sm border border-neutral-200/80 space-y-4">
+      <h3 class="text-base font-bold text-neutral-900 tracking-tight">
+        Apple Design Ideology vs Traditional Writing Tools
+      </h3>
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs border-collapse">
+          <thead>
+            <tr class="border-b border-neutral-200 text-neutral-500 uppercase tracking-wider text-[10px]">
+              <th class="py-2.5 px-3">Dimension</th>
+              <th class="py-2.5 px-3 bg-blue-50/50 text-blue-900 font-bold">Apple HIG Philosophy</th>
+              <th class="py-2.5 px-3">Linear / Notion Style</th>
+              <th class="py-2.5 px-3">Traditional Scrivener / Word</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-neutral-100 text-neutral-700">
+            <tr>
+              <td class="py-2.5 px-3 font-semibold text-neutral-900">Chrome & Surface</td>
+              <td class="py-2.5 px-3 bg-blue-50/30 font-medium text-blue-950">Vibrant frosted glass (`backdrop-blur-2xl`) with specular sheen</td>
+              <td class="py-2.5 px-3">Flat, opaque neutral panels with 1px border lines</td>
+              <td class="py-2.5 px-3">Dense, grey, multi-tiered ribbon toolbars</td>
+            </tr>
+            <tr>
+              <td class="py-2.5 px-3 font-semibold text-neutral-900">Mode Switching</td>
+              <td class="py-2.5 px-3 bg-blue-50/30 font-medium text-blue-950">Tactile sliding segmented control with smooth spring physics</td>
+              <td class="py-2.5 px-3">Standard tab buttons with bottom active border</td>
+              <td class="py-2.5 px-3">Menu bar items or dense toolbar dropdowns</td>
+            </tr>
+            <tr>
+              <td class="py-2.5 px-3 font-semibold text-neutral-900">Document Architecture</td>
+              <td class="py-2.5 px-3 bg-blue-50/30 font-medium text-blue-950">Native Proxy Icon (drag, rename, versions, iCloud status)</td>
+              <td class="py-2.5 px-3">Dropdown breadcrumb pill</td>
+              <td class="py-2.5 px-3">File menu bar items (`File > Save As...`)</td>
+            </tr>
+            <tr>
+              <td class="py-2.5 px-3 font-semibold text-neutral-900">Progress Tracking</td>
+              <td class="py-2.5 px-3 bg-blue-50/30 font-medium text-blue-950">Circular Activity Rings (Apple Watch & Pages progress ring)</td>
+              <td class="py-2.5 px-3">Linear progress bar or raw numeric count</td>
+              <td class="py-2.5 px-3">Bottom status bar text label</td>
+            </tr>
+            <tr>
+              <td class="py-2.5 px-3 font-semibold text-neutral-900">Typography</td>
+              <td class="py-2.5 px-3 bg-blue-50/30 font-medium text-blue-950">Dual pairing: SF Pro (Controls) + New York (Prose & Headings)</td>
+              <td class="py-2.5 px-3">Inter or Roboto throughout</td>
+              <td class="py-2.5 px-3">Times New Roman or Courier</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </footer>
+
+  </div>
+
+  <script>
+    // Interactive sliding segmented control logic
+    function setSegmentTab(index, width, leftOffset) {
+      const indicator = document.getElementById('p1-pill-indicator');
+      if (indicator) {
+        indicator.style.width = width + 'px';
+        indicator.style.left = leftOffset + 'px';
+      }
+
+      // Update button text styling
+      const buttons = document.querySelectorAll('.p1-seg-btn');
+      buttons.forEach((btn, i) => {
+        if (i === index) {
+          btn.classList.add('text-neutral-900', 'dark:text-white');
+          btn.classList.remove('text-neutral-600', 'dark:text-neutral-400');
+        } else {
+          btn.classList.remove('text-neutral-900', 'dark:text-white');
+          btn.classList.add('text-neutral-600', 'dark:text-neutral-400');
+        }
+      });
+    }
+
+    // Toggle popovers
+    function toggleAppleMenu(id) {
+      const el = document.getElementById(id);
+      if (el) {
+        el.classList.toggle('hidden');
+      }
+    }
+
+    // Close popovers on click outside
+    document.addEventListener('click', function(e) {
+      if (!e.target.closest('#p1-doc-proxy-sheet') && !e.target.closest('button[onclick*="p1-doc-proxy-sheet"]')) {
+        const sheet = document.getElementById('p1-doc-proxy-sheet');
+        if (sheet) sheet.classList.add('hidden');
+      }
+      if (!e.target.closest('#p1-word-stats-popover') && !e.target.closest('button[onclick*="p1-word-stats-popover"]')) {
+        const stats = document.getElementById('p1-word-stats-popover');
+        if (stats) stats.classList.add('hidden');
+      }
+    });
+
+    // Theme switching
+    function setAppleTheme(theme) {
+      const roots = document.querySelectorAll('.apple-prototype-root');
+      roots.forEach(r => r.setAttribute('data-apple-theme', theme));
+
+      // Update active button state
+      ['light', 'dark', 'sepia'].forEach(t => {
+        const btn = document.getElementById('btn-theme-' + t);
+        if (t === theme) {
+          btn.className = 'px-3 py-1.5 text-xs font-medium rounded-lg bg-white shadow-xs text-neutral-900 flex items-center gap-1.5 transition-all';
+        } else {
+          btn.className = 'px-3 py-1.5 text-xs font-medium rounded-lg text-neutral-600 hover:text-neutral-900 flex items-center gap-1.5 transition-all';
+        }
+      });
+    }
+
+    // Viewport resizing simulation
+    function updateAppleWidth(val) {
+      const viewport = document.getElementById('appleViewport');
+      const label = document.getElementById('appleWidthValue');
+      if (viewport) viewport.style.width = val + 'px';
+      if (label) label.innerText = val + 'px';
+
+      // Update preset buttons styling
+      [1360, 1180, 940, 760].forEach(p => {
+        const btn = document.getElementById('preset-' + p);
+        if (btn) {
+          if (parseInt(val) === p) {
+            btn.className = 'px-2.5 py-1 text-xs bg-blue-50 text-blue-900 border border-blue-200 rounded-md font-medium';
+          } else {
+            btn.className = 'px-2.5 py-1 text-xs bg-neutral-100 hover:bg-neutral-200 rounded-md text-neutral-700 font-medium';
+          }
+        }
+      });
+
+      // Responsive adjustments for Segmented text
+      const segTexts = document.querySelectorAll('.p1-seg-text');
+      if (val < 900) {
+        segTexts.forEach(el => el.classList.add('hidden'));
+        // Resize sliding indicator for icon-only
+        const indicator = document.getElementById('p1-pill-indicator');
+        if (indicator) indicator.style.width = '32px';
+      } else {
+        segTexts.forEach(el => el.classList.remove('hidden'));
+      }
+    }
+
+    function setAppleWidthPreset(val) {
+      document.getElementById('appleWidthSlider').value = val;
+      updateAppleWidth(val);
+    }
+
+    // Adaptive Hybrid OS Mode Switching
+    function setOsMode(os) {
+      const macLights = document.getElementById('p1-macos-traffic-lights');
+      const winMonogram = document.getElementById('p1-win-monogram');
+      const winCaptions = document.getElementById('p1-win-captions');
+      const filepath = document.getElementById('p1-proxy-filepath');
+      const revealText = document.getElementById('p1-proxy-reveal-text');
+      const saveStatus = document.getElementById('p1-save-status-text');
+
+      // Update button styling
+      ['macos', 'windows', 'web'].forEach(mode => {
+        const btn = document.getElementById('btn-os-' + mode);
+        if (btn) {
+          if (mode === os) {
+            btn.className = 'px-2.5 py-1 rounded-lg bg-white shadow-xs text-neutral-900 font-medium flex items-center gap-1.5 transition-all';
+          } else {
+            btn.className = 'px-2.5 py-1 rounded-lg text-neutral-600 hover:text-neutral-900 font-medium flex items-center gap-1.5 transition-all';
+          }
+        }
+      });
+
+      if (os === 'macos') {
+        if (macLights) macLights.classList.remove('hidden');
+        if (winMonogram) { winMonogram.classList.add('hidden'); winMonogram.classList.remove('flex'); }
+        if (winCaptions) { winCaptions.classList.add('hidden'); winCaptions.classList.remove('flex'); }
+        if (filepath) filepath.innerText = '~/Documents/Novels/Alchemist.mriter';
+        if (revealText) revealText.innerText = 'Show in Finder';
+        if (saveStatus) saveStatus.innerText = 'Saved to iCloud · 42.6% complete';
+      } else if (os === 'windows') {
+        if (macLights) macLights.classList.add('hidden');
+        if (winMonogram) { winMonogram.classList.remove('hidden'); winMonogram.classList.add('flex'); }
+        if (winCaptions) { winCaptions.classList.remove('hidden'); winCaptions.classList.add('flex'); }
+        if (filepath) filepath.innerText = 'C:\\Users\\Author\\Documents\\Mriter\\Alchemist.mriter';
+        if (revealText) revealText.innerText = 'Show in File Explorer';
+        if (saveStatus) saveStatus.innerText = 'Saved to OneDrive · 42.6% complete';
+      } else if (os === 'web') {
+        if (macLights) macLights.classList.add('hidden');
+        if (winMonogram) { winMonogram.classList.remove('hidden'); winMonogram.classList.add('flex'); }
+        if (winCaptions) { winCaptions.classList.add('hidden'); winCaptions.classList.remove('flex'); }
+        if (filepath) filepath.innerText = 'Browser IndexedDB Storage';
+        if (revealText) revealText.innerText = 'Export .mriter File';
+        if (saveStatus) saveStatus.innerText = 'Auto-saved locally · 42.6% complete';
+      }
+    }
+
+    // Initialize defaults
+    updateAppleWidth(1180);
+    setOsMode('macos');
+  </script>
+</body>
+</html>

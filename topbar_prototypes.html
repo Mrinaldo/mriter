@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Mriter - Top Bar Responsive Design Prototypes</title>
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <style>
+    :root {
+      --bg-app: #f7f5f2;
+      --bg-panel: #efece5;
+      --bg-surface: #faf8f5;
+      --border-subtle: #e3ded6;
+      --border-muted: #d5cfc5;
+      --text-main: #342f2b;
+      --text-muted: #746d64;
+      --text-faint: #9b9388;
+      --accent: #87715b;
+      --accent-soft: rgba(135, 113, 91, 0.12);
+    }
+    [data-theme="sepia"] {
+      --bg-app: #f3edd9;
+      --bg-panel: #e9e1c9;
+      --bg-surface: #f7f2e4;
+      --border-subtle: #dcd0b5;
+      --border-muted: #cdbe9f;
+      --text-main: #382d20;
+      --text-muted: #746551;
+      --text-faint: #978770;
+      --accent: #8e714b;
+      --accent-soft: rgba(142, 113, 75, 0.12);
+    }
+    [data-theme="sage"] {
+      --bg-app: #f2f4f2;
+      --bg-panel: #e6ebe5;
+      --bg-surface: #f7faf7;
+      --border-subtle: #d6dfd5;
+      --border-muted: #c3cfc2;
+      --text-main: #2b332c;
+      --text-muted: #657166;
+      --text-faint: #879488;
+      --accent: #5a745f;
+      --accent-soft: rgba(90, 116, 95, 0.12);
+    }
+    [data-theme="dark"] {
+      --bg-app: #201f1e;
+      --bg-panel: #272524;
+      --bg-surface: #2e2c2a;
+      --border-subtle: #383532;
+      --border-muted: #47433f;
+      --text-main: #ded9d2;
+      --text-muted: #8e8880;
+      --text-faint: #6d6861;
+      --accent: #b5a188;
+      --accent-soft: rgba(181, 161, 136, 0.14);
+    }
+    .theme-app { background-color: var(--bg-app); color: var(--text-main); }
+    .theme-panel { background-color: var(--bg-panel); color: var(--text-main); }
+    .theme-surface { background-color: var(--bg-surface); }
+    .theme-border { border-color: var(--border-subtle); }
+    .theme-text-muted { color: var(--text-muted); }
+    .theme-text-faint { color: var(--text-faint); }
+    .theme-accent { color: var(--accent); }
+    .theme-accent-soft { background-color: var(--accent-soft); }
+
+    /* Transitions */
+    .smooth-transition { transition: all 0.2s ease-in-out; }
+    
+    /* Custom scrollbar */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.15); border-radius: 4px; }
+  </style>
+</head>
+<body class="bg-slate-100 text-slate-800 p-4 md:p-8 font-sans antialiased min-h-screen">
+
+  <div class="max-w-7xl mx-auto space-y-6">
+
+    <!-- Header Controls & Testbench -->
+    <header class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 space-y-4">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h1 class="text-xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
+            <span class="w-7 h-7 rounded-lg bg-amber-100 text-amber-800 flex items-center justify-center font-serif font-bold text-sm">M</span>
+            Mriter Top Bar Responsive Prototype Lab
+          </h1>
+          <p class="text-slate-500 text-sm mt-0.5">
+            Test and visually compare layout behavior across screen widths and color palettes.
+          </p>
+          <div class="mt-2 flex items-center gap-2">
+            <a href="apple_design_prototypes.html" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 text-xs font-semibold transition-colors">
+              <span> View Apple HIG Prototypes Lab</span>
+              <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+            </a>
+          </div>
+        </div>
+
+        <!-- Color Theme Switcher for the prototypes -->
+        <div class="flex items-center gap-2 bg-slate-50 p-1.5 rounded-xl border border-slate-200 shrink-0">
+          <span class="text-xs font-semibold text-slate-500 px-2 uppercase tracking-wider">Palette:</span>
+          <button onclick="setGlobalTheme('paper')" id="btn-theme-paper" class="px-2.5 py-1 text-xs font-medium rounded-lg bg-white shadow-xs border border-slate-300 text-slate-900">
+            Linen (Default)
+          </button>
+          <button onclick="setGlobalTheme('sepia')" id="btn-theme-sepia" class="px-2.5 py-1 text-xs font-medium rounded-lg hover:bg-white text-slate-600">
+            Sepia
+          </button>
+          <button onclick="setGlobalTheme('sage')" id="btn-theme-sage" class="px-2.5 py-1 text-xs font-medium rounded-lg hover:bg-white text-slate-600">
+            Sage
+          </button>
+          <button onclick="setGlobalTheme('dark')" id="btn-theme-dark" class="px-2.5 py-1 text-xs font-medium rounded-lg hover:bg-white text-slate-600">
+            Charcoal Dark
+          </button>
+        </div>
+      </div>
+
+      <!-- Resizing Simulator Bar -->
+      <div class="pt-3 border-t border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div class="flex items-center gap-3 flex-1">
+          <span class="text-xs font-semibold text-slate-500 shrink-0 flex items-center gap-1.5">
+            <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16" /></svg>
+            Simulate Width:
+          </span>
+          <input type="range" id="widthSlider" min="700" max="1360" value="1150" step="10" 
+                 class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-amber-700" 
+                 oninput="updateContainerWidth(this.value)">
+          <span id="widthValue" class="text-xs font-mono font-bold bg-slate-100 text-slate-700 px-2.5 py-1 rounded-md border border-slate-200 shrink-0 w-20 text-center">
+            1150px
+          </span>
+        </div>
+
+        <!-- Quick Breakpoint Presets -->
+        <div class="flex items-center gap-1.5 shrink-0">
+          <span class="text-xs font-semibold text-slate-400 mr-1">Presets:</span>
+          <button onclick="setWidthPreset(1360)" class="px-2.5 py-1 text-xs bg-slate-100 hover:bg-slate-200 rounded-md text-slate-700 font-medium">
+            1360px <span class="text-slate-400 font-normal">Desktop</span>
+          </button>
+          <button onclick="setWidthPreset(1150)" class="px-2.5 py-1 text-xs bg-amber-50 text-amber-900 border border-amber-200 rounded-md font-medium" id="preset-1150">
+            1150px <span class="text-amber-700 font-normal">Laptop</span>
+          </button>
+          <button onclick="setWidthPreset(920)" class="px-2.5 py-1 text-xs bg-slate-100 hover:bg-slate-200 rounded-md text-slate-700 font-medium">
+            920px <span class="text-slate-400 font-normal">Minimum</span>
+          </button>
+          <button onclick="setWidthPreset(760)" class="px-2.5 py-1 text-xs bg-slate-100 hover:bg-slate-200 rounded-md text-slate-700 font-medium">
+            760px <span class="text-slate-400 font-normal">Snap/Split</span>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- PROTOTYPE CANVAS WRAPPER (This dynamically resizes) -->
+    <div id="simulatedViewport" class="mx-auto smooth-transition space-y-8" style="width: 1150px; max-width: 100%;">
+
+      <!-- ======================================================== -->
+      <!-- OPTION 1: THE MODERN MINIMALIST (RECOMMENDED)            -->
+      <!-- ======================================================== -->
+      <section class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200 space-y-3">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <span class="px-2 py-0.5 rounded text-xs font-bold uppercase tracking-wider bg-emerald-100 text-emerald-800">
+              Option 1 · Recommended
+            </span>
+            <h2 class="text-base font-bold text-slate-900">The Modern Minimalist (Linear / Notion Style)</h2>
+          </div>
+          <span class="text-xs text-slate-500 hidden sm:inline">
+            Tucks file ops into project menu · 1-click theme cycle · Responsive tabs
+          </span>
+        </div>
+
+        <!-- Frame -->
+        <div class="prototype-root rounded-xl overflow-hidden border theme-border shadow-xs smooth-transition" data-theme="paper">
+          <!-- The Top Bar -->
+          <div class="h-11 theme-panel border-b theme-border flex items-center justify-between pl-3 pr-2 select-none relative" id="opt1-bar">
+            
+            <!-- Left: Monogram & Project Dropdown Pill -->
+            <div class="flex items-center gap-2 shrink-0">
+              <div class="w-6 h-6 rounded theme-accent-soft flex items-center justify-center theme-accent font-serif font-bold text-xs">
+                M
+              </div>
+
+              <!-- Project Dropdown Trigger -->
+              <div class="relative">
+                <button onclick="toggleMenu('opt1-project-dropdown')" class="flex items-center gap-1.5 px-2 py-1 rounded-md hover:bg-black/5 dark:hover:bg-white/5 border border-transparent hover:theme-border text-xs font-serif transition-colors">
+                  <span class="font-semibold truncate max-w-[150px] sm:max-w-[200px]">The Alchemist's Secret</span>
+                  <span class="theme-text-muted text-[11px] hidden md:inline truncate">· E. Vance</span>
+                  <svg class="w-3 h-3 theme-text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                </button>
+
+                <!-- Project Menu Dropdown -->
+                <div id="opt1-project-dropdown" class="hidden absolute left-0 top-full mt-1 w-56 theme-surface rounded-lg shadow-lg border theme-border p-1.5 z-50 text-xs">
+                  <div class="px-2 py-1 text-[11px] font-semibold theme-text-muted border-b theme-border mb-1">
+                    MANUSCRIPT ACTIONS
+                  </div>
+                  <button class="w-full text-left px-2 py-1.5 rounded hover:bg-black/5 flex items-center justify-between">
+                    <span>New Manuscript...</span>
+                    <span class="theme-text-faint font-mono text-[10px]">Ctrl+N</span>
+                  </button>
+                  <button class="w-full text-left px-2 py-1.5 rounded hover:bg-black/5 flex items-center justify-between">
+                    <span>Open Manuscript (.mriter)</span>
+                    <span class="theme-text-faint font-mono text-[10px]">Ctrl+O</span>
+                  </button>
+                  <button class="w-full text-left px-2 py-1.5 rounded hover:bg-black/5 flex items-center justify-between">
+                    <span>Save Project</span>
+                    <span class="theme-text-faint font-mono text-[10px]">Ctrl+S</span>
+                  </button>
+                  <button class="w-full text-left px-2 py-1.5 rounded hover:bg-black/5 flex items-center justify-between">
+                    <span>Rename Manuscript</span>
+                  </button>
+                  <div class="border-t theme-border my-1"></div>
+                  <button class="w-full text-left px-2 py-1.5 rounded hover:bg-black/5 flex items-center justify-between font-medium">
+                    <span>Manuscript Library (4)</span>
+                    <span class="text-[10px] theme-accent">Open</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Quiet Save Indicator -->
+              <div class="flex items-center gap-1.5 text-xs theme-text-muted pl-1">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-600 opacity-80" title="All changes saved"></span>
+                <span class="text-[11px] theme-text-faint hidden lg:inline">Saved</span>
+              </div>
+            </div>
+
+            <!-- Center: Adaptive Segmented View Switcher -->
+            <nav class="flex items-center theme-surface p-0.5 rounded-lg border theme-border shrink-0" id="opt1-tabs">
+              <button class="flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-xs font-medium theme-panel shadow-xs border theme-border">
+                <svg class="w-3.5 h-3.5 opacity-75" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>
+                <span class="opt1-tab-label">Write</span>
+              </button>
+              <button class="flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-xs font-medium theme-text-muted hover:theme-text-main transition-colors">
+                <svg class="w-3.5 h-3.5 opacity-75" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>
+                <span class="opt1-tab-label">Outline</span>
+              </button>
+              <button class="flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-xs font-medium theme-text-muted hover:theme-text-main transition-colors">
+                <svg class="w-3.5 h-3.5 opacity-75" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
+                <span class="opt1-tab-label">Bible</span>
+              </button>
+              <button class="flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-xs font-medium theme-text-muted hover:theme-text-main transition-colors">
+                <svg class="w-3.5 h-3.5 opacity-75" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" /></svg>
+                <span class="opt1-tab-label">Publish</span>
+              </button>
+            </nav>
+
+            <!-- Right: Utilities & Window Controls -->
+            <div class="flex items-center gap-2 shrink-0">
+              <!-- Word Count Badge -->
+              <div class="hidden sm:flex items-center gap-1 text-xs font-mono theme-text-muted px-2 py-0.5 rounded bg-black/5 dark:bg-white/5">
+                <span class="font-semibold text-main">34,120</span>
+                <span class="theme-text-faint">/ 80kw</span>
+              </div>
+
+              <!-- Consolidated Theme Cycler Button (Saves 180px!) -->
+              <button onclick="cycleThemePreset()" title="Click to cycle theme (Linen, Sepia, Sage, Charcoal)" 
+                      class="flex items-center gap-1.5 px-2 py-1 rounded-md hover:bg-black/5 dark:hover:bg-white/5 border border-transparent hover:theme-border text-xs transition-colors">
+                <svg class="w-3.5 h-3.5 theme-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4 4 4 0 014-4c2 0 3-1 3-3 0-1.5 1-3 3-3s3 1.5 3 3c0 2 1 3 3 3a4 4 0 014 4 4 4 0 01-4 4H7z" /></svg>
+                <span class="text-[11px] theme-text-muted hidden md:inline capitalize" id="opt1-theme-label">Linen</span>
+              </button>
+
+              <!-- Actions Palette Trigger -->
+              <button title="Command Palette (Ctrl+Shift+A)" class="p-1.5 rounded-md hover:bg-black/5 text-xs theme-text-muted hover:theme-text-main transition-colors">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+              </button>
+
+              <!-- Zen Focus Mode -->
+              <button title="Zen Focus Mode (F11)" class="p-1.5 rounded-md hover:bg-black/5 text-xs theme-text-muted hover:theme-text-main transition-colors">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" /></svg>
+              </button>
+
+              <!-- Windows Native Caption Controls Mockup (Matching theme) -->
+              <div class="flex items-center h-11 ml-1 pl-1 border-l theme-border opacity-70">
+                <button class="w-11 h-11 flex items-center justify-center hover:bg-black/5 transition-colors">
+                  <span class="w-2.5 h-[1px] bg-current"></span>
+                </button>
+                <button class="w-11 h-11 flex items-center justify-center hover:bg-black/5 transition-colors">
+                  <span class="w-2.5 h-2.5 border border-current"></span>
+                </button>
+                <button class="w-11 h-11 flex items-center justify-center hover:bg-red-500 hover:text-white transition-colors">
+                  <span class="text-xs font-mono">✕</span>
+                </button>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Dummy Editor Body preview -->
+          <div class="p-6 theme-app min-h-[110px] flex items-center justify-center border-t theme-border text-xs theme-text-muted font-serif">
+            [Writing Canvas: Clean distraction-free view with generous margins and no visual friction]
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3 pt-2 text-xs text-slate-600">
+          <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-100">
+            <span class="font-bold text-slate-800">1. Safe Width: ~760px</span>
+            <p class="text-[11px] text-slate-500 mt-0.5">Works effortlessly on half-screen snap without any awkward wrapping or missing buttons.</p>
+          </div>
+          <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-100">
+            <span class="font-bold text-slate-800">2. Dropdown Consolidation</span>
+            <p class="text-[11px] text-slate-500 mt-0.5">Moves 5 one-off buttons (New, Open, Save, Rename, Library) into a clean, standard project pill.</p>
+          </div>
+          <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-100">
+            <span class="font-bold text-slate-800">3. Single Theme Cycler</span>
+            <p class="text-[11px] text-slate-500 mt-0.5">Replaces 4 wide buttons with 1 elegant icon button that cycles Linen → Sepia → Sage → Charcoal.</p>
+          </div>
+        </div>
+      </section>
+
+
+      <!-- ======================================================== -->
+      <!-- OPTION 2: THE FOCUSED CRAFT STUDIO (ULYSSES / SCRIVENER) -->
+      <!-- ======================================================== -->
+      <section class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200 space-y-3">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <span class="px-2 py-0.5 rounded text-xs font-bold uppercase tracking-wider bg-indigo-100 text-indigo-800">
+              Option 2
+            </span>
+            <h2 class="text-base font-bold text-slate-900">The Focused Craft Studio (Book-Centric / Ulysses Style)</h2>
+          </div>
+          <span class="text-xs text-slate-500 hidden sm:inline">
+            Tucks all utilities into a single "···" overflow menu · Breadcrumb navigation
+          </span>
+        </div>
+
+        <!-- Frame -->
+        <div class="prototype-root rounded-xl overflow-hidden border theme-border shadow-xs smooth-transition" data-theme="paper">
+          <!-- The Top Bar -->
+          <div class="h-11 theme-panel border-b theme-border flex items-center justify-between pl-3 pr-2 select-none relative" id="opt2-bar">
+            
+            <!-- Left: Sidebar Toggle & Chapter Breadcrumb -->
+            <div class="flex items-center gap-2.5 shrink-0">
+              <button title="Toggle Binder Sidebar (Ctrl+\)" class="p-1.5 rounded-md hover:bg-black/5 theme-text-muted hover:theme-text-main transition-colors">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h8m-8 6h16" /></svg>
+              </button>
+
+              <div class="flex items-center gap-1.5 text-xs font-serif">
+                <span class="font-semibold text-main truncate max-w-[140px]">The Alchemist's Secret</span>
+                <span class="theme-text-faint">/</span>
+                <span class="theme-text-muted truncate max-w-[120px] hidden sm:inline">Chapter 3: The Cipher</span>
+              </div>
+            </div>
+
+            <!-- Center: Low-Profile View Pill -->
+            <nav class="flex items-center gap-1 theme-surface px-1 py-0.5 rounded-full border theme-border shrink-0">
+              <button class="px-3 py-0.5 rounded-full text-xs font-medium theme-panel shadow-xs border theme-border">
+                Write
+              </button>
+              <button class="px-3 py-0.5 rounded-full text-xs font-medium theme-text-muted hover:theme-text-main transition-colors">
+                Plan
+              </button>
+              <button class="px-3 py-0.5 rounded-full text-xs font-medium theme-text-muted hover:theme-text-main transition-colors">
+                Publish
+              </button>
+            </nav>
+
+            <!-- Right: Progress Ring + Overflow "..." Menu -->
+            <div class="flex items-center gap-2 shrink-0">
+              <!-- Radial/Pill Word Progress -->
+              <div class="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-black/5 dark:bg-white/5 text-xs font-mono theme-text-muted">
+                <span class="w-2 h-2 rounded-full bg-amber-600"></span>
+                <span>42.6%</span>
+                <span class="theme-text-faint text-[10px] hidden md:inline">(34.1k w)</span>
+              </div>
+
+              <!-- Single Overflow Drawer Menu Button -->
+              <div class="relative">
+                <button onclick="toggleMenu('opt2-overflow-dropdown')" class="p-1.5 rounded-md hover:bg-black/5 text-xs theme-text-muted hover:theme-text-main transition-colors">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h.01M12 12h.01M19 12h.01M6 12a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0z" /></svg>
+                </button>
+
+                <!-- Overflow Menu Dropdown -->
+                <div id="opt2-overflow-dropdown" class="hidden absolute right-0 top-full mt-1 w-52 theme-surface rounded-lg shadow-lg border theme-border p-1.5 z-50 text-xs">
+                  <div class="px-2 py-1 text-[11px] font-semibold theme-text-muted">THEME PALETTE</div>
+                  <div class="grid grid-cols-2 gap-1 px-1 py-1 border-b theme-border mb-1">
+                    <button onclick="setGlobalTheme('paper')" class="px-2 py-1 rounded bg-black/5 text-left text-[11px]">Linen</button>
+                    <button onclick="setGlobalTheme('sepia')" class="px-2 py-1 rounded hover:bg-black/5 text-left text-[11px]">Sepia</button>
+                    <button onclick="setGlobalTheme('sage')" class="px-2 py-1 rounded hover:bg-black/5 text-left text-[11px]">Sage</button>
+                    <button onclick="setGlobalTheme('dark')" class="px-2 py-1 rounded hover:bg-black/5 text-left text-[11px]">Charcoal</button>
+                  </div>
+                  <button class="w-full text-left px-2 py-1.5 rounded hover:bg-black/5 flex items-center justify-between">
+                    <span>Actions Palette...</span>
+                    <span class="theme-text-faint text-[10px]">Ctrl+Shift+A</span>
+                  </button>
+                  <button class="w-full text-left px-2 py-1.5 rounded hover:bg-black/5 flex items-center justify-between">
+                    <span>Shortcuts Settings</span>
+                  </button>
+                  <button class="w-full text-left px-2 py-1.5 rounded hover:bg-black/5 flex items-center justify-between">
+                    <span>Zen Focus Mode</span>
+                    <span class="theme-text-faint text-[10px]">F11</span>
+                  </button>
+                  <div class="border-t theme-border my-1"></div>
+                  <button class="w-full text-left px-2 py-1.5 rounded hover:bg-black/5 flex items-center justify-between">
+                    <span>Open Manuscript Library</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Windows Native Caption Controls Mockup -->
+              <div class="flex items-center h-11 ml-1 pl-1 border-l theme-border opacity-70">
+                <button class="w-11 h-11 flex items-center justify-center hover:bg-black/5 transition-colors">
+                  <span class="w-2.5 h-[1px] bg-current"></span>
+                </button>
+                <button class="w-11 h-11 flex items-center justify-center hover:bg-black/5 transition-colors">
+                  <span class="w-2.5 h-2.5 border border-current"></span>
+                </button>
+                <button class="w-11 h-11 flex items-center justify-center hover:bg-red-500 hover:text-white transition-colors">
+                  <span class="text-xs font-mono">✕</span>
+                </button>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Dummy Editor Body preview -->
+          <div class="p-6 theme-app min-h-[110px] flex items-center justify-center border-t theme-border text-xs theme-text-muted font-serif">
+            [Writing Canvas: Ultra-minimal bar leaves almost 100% of the cognitive focus on your prose]
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3 pt-2 text-xs text-slate-600">
+          <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-100">
+            <span class="font-bold text-slate-800">1. Safe Width: ~650px</span>
+            <p class="text-[11px] text-slate-500 mt-0.5">The absolute most resilient layout; fits comfortably even on small screens or third-screen snaps.</p>
+          </div>
+          <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-100">
+            <span class="font-bold text-slate-800">2. Novel Chapter Context</span>
+            <p class="text-[11px] text-slate-500 mt-0.5">Shows current manuscript chapter context in the header so authors always know where they are.</p>
+          </div>
+          <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-100">
+            <span class="font-bold text-slate-800">3. Distraction-Free Philosophy</span>
+            <p class="text-[11px] text-slate-500 mt-0.5">Hides tool clutter until needed behind a single quiet overflow icon.</p>
+          </div>
+        </div>
+      </section>
+
+
+      <!-- ======================================================== -->
+      <!-- OPTION 3: THREE-TIER ADAPTIVE RESPONSIVE BAR             -->
+      <!-- ======================================================== -->
+      <section class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200 space-y-3">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <span class="px-2 py-0.5 rounded text-xs font-bold uppercase tracking-wider bg-violet-100 text-violet-800">
+              Option 3
+            </span>
+            <h2 class="text-base font-bold text-slate-900">Three-Tier Adaptive Bar (Mode Dropdown on Compact)</h2>
+          </div>
+          <span class="text-xs text-slate-500 hidden sm:inline">
+            Full tabs on wide screens · Collapses to mode dropdown on split-screen
+          </span>
+        </div>
+
+        <!-- Frame -->
+        <div class="prototype-root rounded-xl overflow-hidden border theme-border shadow-xs smooth-transition" data-theme="paper">
+          <!-- The Top Bar -->
+          <div class="h-11 theme-panel border-b theme-border flex items-center justify-between pl-3 pr-2 select-none relative" id="opt3-bar">
+            
+            <!-- Left: Monogram & Compact Project -->
+            <div class="flex items-center gap-2 shrink-0">
+              <div class="w-6 h-6 rounded theme-accent-soft flex items-center justify-center theme-accent font-serif font-bold text-xs">
+                M
+              </div>
+              <span class="font-serif font-semibold text-xs truncate max-w-[150px] sm:max-w-[200px]">The Alchemist's Secret</span>
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-600 opacity-80" title="Saved"></span>
+            </div>
+
+            <!-- Center: Mode Selector (Changes between Full Tabs and Single Dropdown) -->
+            <div id="opt3-center-tabs" class="shrink-0">
+              <!-- Wide & Medium: Tab Pills -->
+              <nav id="opt3-full-tabs" class="flex items-center theme-surface p-0.5 rounded-lg border theme-border">
+                <button class="flex items-center gap-1 px-2.5 py-0.5 rounded-md text-xs font-medium theme-panel shadow-xs border theme-border">
+                  <span>✍</span>
+                  <span class="opt3-tab-text">Write</span>
+                </button>
+                <button class="flex items-center gap-1 px-2.5 py-0.5 rounded-md text-xs font-medium theme-text-muted hover:theme-text-main">
+                  <span>⊞</span>
+                  <span class="opt3-tab-text">Outline</span>
+                </button>
+                <button class="flex items-center gap-1 px-2.5 py-0.5 rounded-md text-xs font-medium theme-text-muted hover:theme-text-main">
+                  <span>♟</span>
+                  <span class="opt3-tab-text">Bible</span>
+                </button>
+                <button class="flex items-center gap-1 px-2.5 py-0.5 rounded-md text-xs font-medium theme-text-muted hover:theme-text-main">
+                  <span>✦</span>
+                  <span class="opt3-tab-text">Publish</span>
+                </button>
+              </nav>
+
+              <!-- Narrow / Split-Screen Mode: Single Mode Dropdown (Takes only 85px!) -->
+              <div id="opt3-compact-dropdown" class="hidden relative">
+                <button onclick="toggleMenu('opt3-mode-menu')" class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg theme-surface border theme-border text-xs font-medium">
+                  <span>✍ Write</span>
+                  <svg class="w-3 h-3 theme-text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                </button>
+                <div id="opt3-mode-menu" class="hidden absolute top-full left-0 mt-1 w-32 theme-surface rounded-lg shadow-lg border theme-border p-1 z-50 text-xs">
+                  <button class="w-full text-left px-2 py-1 rounded bg-black/5 font-semibold">✍ Write</button>
+                  <button class="w-full text-left px-2 py-1 rounded hover:bg-black/5">⊞ Outline</button>
+                  <button class="w-full text-left px-2 py-1 rounded hover:bg-black/5">♟ Bible</button>
+                  <button class="w-full text-left px-2 py-1 rounded hover:bg-black/5">✦ Publish</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Right: Word Count + Theme Icon + Zen + Caption Controls -->
+            <div class="flex items-center gap-2 shrink-0">
+              <span class="text-xs font-mono theme-text-muted bg-black/5 px-2 py-0.5 rounded hidden sm:inline" id="opt3-wordcount">
+                34.1k w
+              </span>
+
+              <button onclick="cycleThemePreset()" class="p-1.5 rounded hover:bg-black/5 theme-text-muted hover:theme-text-main transition-colors" title="Change Theme">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4 4 4 0 014-4c2 0 3-1 3-3 0-1.5 1-3 3-3s3 1.5 3 3c0 2 1 3 3 3a4 4 0 014 4 4 4 0 01-4 4H7z" /></svg>
+              </button>
+
+              <button class="p-1.5 rounded hover:bg-black/5 theme-text-muted hover:theme-text-main transition-colors" title="Zen Focus (F11)">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" /></svg>
+              </button>
+
+              <!-- Windows Native Caption Controls Mockup -->
+              <div class="flex items-center h-11 ml-1 pl-1 border-l theme-border opacity-70">
+                <button class="w-11 h-11 flex items-center justify-center hover:bg-black/5 transition-colors">
+                  <span class="w-2.5 h-[1px] bg-current"></span>
+                </button>
+                <button class="w-11 h-11 flex items-center justify-center hover:bg-black/5 transition-colors">
+                  <span class="w-2.5 h-2.5 border border-current"></span>
+                </button>
+                <button class="w-11 h-11 flex items-center justify-center hover:bg-red-500 hover:text-white transition-colors">
+                  <span class="text-xs font-mono">✕</span>
+                </button>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Dummy Editor Body preview -->
+          <div class="p-6 theme-app min-h-[110px] flex items-center justify-center border-t theme-border text-xs theme-text-muted font-serif">
+            [Writing Canvas: Smooth adaptive layout responds seamlessly from 1400px down to 700px]
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3 pt-2 text-xs text-slate-600">
+          <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-100">
+            <span class="font-bold text-slate-800">1. Tiered Responsiveness</span>
+            <p class="text-[11px] text-slate-500 mt-0.5">Desktop: Full labels. Laptop: Icons only. Split-screen: Collapses into a single mode dropdown.</p>
+          </div>
+          <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-100">
+            <span class="font-bold text-slate-800">2. Never Collides</span>
+            <p class="text-[11px] text-slate-500 mt-0.5">Because the center can collapse into a single 85px button, titlebar never runs out of room.</p>
+          </div>
+          <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-100">
+            <span class="font-bold text-slate-800">3. Familiarity</span>
+            <p class="text-[11px] text-slate-500 mt-0.5">Maintains the current tabs layout when maximized, only condensing when screen space is tight.</p>
+          </div>
+        </div>
+      </section>
+
+
+      <!-- ======================================================== -->
+      <!-- CURRENT DESIGN (BASELINE FOR COMPARISON)                 -->
+      <!-- ======================================================== -->
+      <section class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200 space-y-3 opacity-90">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <span class="px-2 py-0.5 rounded text-xs font-bold uppercase tracking-wider bg-rose-100 text-rose-800">
+              Current Baseline
+            </span>
+            <h2 class="text-base font-bold text-slate-900">Current Design (Why It Collides)</h2>
+          </div>
+          <span class="text-xs text-rose-600 font-medium">
+            Requires ≥ 1,180px before items start clipping or wrapping
+          </span>
+        </div>
+
+        <!-- Frame -->
+        <div class="prototype-root rounded-xl overflow-hidden border theme-border shadow-xs smooth-transition" data-theme="paper">
+          <!-- The Top Bar -->
+          <div class="h-11 theme-panel border-b theme-border flex items-center justify-between px-3 select-none overflow-x-hidden text-xs">
+            
+            <!-- Left: Monogram + Project + Pencil + Saved + Divider + 4 File buttons -->
+            <div class="flex items-center gap-1 shrink-0">
+              <div class="w-6 h-6 rounded theme-accent-soft flex items-center justify-center theme-accent font-serif font-bold text-xs">
+                M
+              </div>
+              <span class="font-serif font-medium truncate max-w-[130px]">The Alchemist's Secret</span>
+              <span class="theme-text-faint text-[10px]">· Vance</span>
+              <button class="p-1 theme-text-faint hover:theme-text-main">
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+              </button>
+              <span class="text-[10px] theme-text-faint pl-1">Saved</span>
+              
+              <!-- Redundant File icons -->
+              <div class="flex items-center gap-0.5 border-l theme-border pl-1.5 ml-1">
+                <button class="px-1 py-0.5 text-[10px] theme-text-muted hover:bg-black/5 rounded">Library (4)</button>
+                <button class="p-1 text-slate-500 hover:bg-black/5 rounded" title="New"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg></button>
+                <button class="p-1 text-slate-500 hover:bg-black/5 rounded" title="Open"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 19a2 2 0 01-2-2V7a2 2 0 012-2h4l2 2h4a2 2 0 012 2v1M5 19h14a2 2 0 002-2v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5a2 2 0 01-2 2z"/></svg></button>
+                <button class="p-1 text-slate-500 hover:bg-black/5 rounded" title="Save"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/></svg></button>
+              </div>
+            </div>
+
+            <!-- Center Tabs with full labels -->
+            <nav class="flex items-center theme-surface p-0.5 rounded-lg border theme-border shrink-0 text-xs">
+              <span class="px-2 py-0.5 bg-black/5 rounded font-medium">Write</span>
+              <span class="px-2 py-0.5 theme-text-muted">Outline</span>
+              <span class="px-2 py-0.5 theme-text-muted">Bible</span>
+              <span class="px-2 py-0.5 theme-text-muted">Publish</span>
+            </nav>
+
+            <!-- Right: All 4 themes + Actions button + Keymap + Zen + Windows Controls (Takes 520px!) -->
+            <div class="flex items-center gap-1.5 shrink-0">
+              <span class="font-mono text-[11px] theme-text-faint hidden lg:inline">34,120 / 80kw</span>
+              
+              <!-- 4 full theme buttons -->
+              <div class="flex items-center theme-surface p-0.5 rounded-lg border theme-border text-[10px]">
+                <span class="px-1.5 py-0.5 bg-black/5 rounded font-medium">Linen</span>
+                <span class="px-1.5 py-0.5 theme-text-muted">Sepia</span>
+                <span class="px-1.5 py-0.5 theme-text-muted">Sage</span>
+                <span class="px-1.5 py-0.5 theme-text-muted">Charcoal</span>
+              </div>
+
+              <!-- Actions with kbd -->
+              <button class="flex items-center gap-1 px-1.5 py-0.5 border theme-border rounded text-[11px]">
+                <span>Actions</span>
+                <span class="font-mono text-[9px] bg-black/5 px-1 rounded">Ctrl+A</span>
+              </button>
+
+              <button class="p-1 theme-text-muted">⌨</button>
+              <button class="p-1 theme-text-muted">⛶</button>
+
+              <!-- Reserved Windows Caption area (142px) -->
+              <div class="w-[110px] h-8 bg-amber-900/10 rounded flex items-center justify-center text-[10px] theme-text-faint">
+                [Win Controls]
+              </div>
+            </div>
+
+          </div>
+
+          <div class="p-4 theme-app text-center text-xs theme-text-faint border-t theme-border">
+            ⚠️ Try dragging the slider above below 1,180px: Notice how this current layout starts overflowing and clipping elements.
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </div>
+
+  <script>
+    // Live Resizing Simulator
+    function updateContainerWidth(val) {
+      const container = document.getElementById('simulatedViewport');
+      const widthVal = document.getElementById('widthValue');
+      container.style.width = val + 'px';
+      widthVal.innerText = val + 'px';
+
+      // Update responsive tab labels for Option 1
+      const tabLabels1 = document.querySelectorAll('.opt1-tab-label');
+      if (val < 1050) {
+        tabLabels1.forEach(el => el.classList.add('hidden'));
+      } else {
+        tabLabels1.forEach(el => el.classList.remove('hidden'));
+      }
+
+      // Update responsive behavior for Option 3
+      const opt3Full = document.getElementById('opt3-full-tabs');
+      const opt3Compact = document.getElementById('opt3-compact-dropdown');
+      const opt3TabTexts = document.querySelectorAll('.opt3-tab-text');
+      
+      if (val < 860) {
+        if (opt3Full) opt3Full.classList.add('hidden');
+        if (opt3Compact) opt3Compact.classList.remove('hidden');
+      } else {
+        if (opt3Full) opt3Full.classList.remove('hidden');
+        if (opt3Compact) opt3Compact.classList.add('hidden');
+        if (val < 1100) {
+          opt3TabTexts.forEach(el => el.classList.add('hidden'));
+        } else {
+          opt3TabTexts.forEach(el => el.classList.remove('hidden'));
+        }
+      }
+    }
+
+    function setWidthPreset(val) {
+      document.getElementById('widthSlider').value = val;
+      updateContainerWidth(val);
+    }
+
+    // Theme switching in the prototype
+    const themes = ['paper', 'sepia', 'sage', 'dark'];
+    let currentThemeIdx = 0;
+
+    function setGlobalTheme(themeName) {
+      const roots = document.querySelectorAll('.prototype-root');
+      roots.forEach(r => r.setAttribute('data-theme', themeName));
+
+      // Update active button state
+      ['paper', 'sepia', 'sage', 'dark'].forEach(t => {
+        const btn = document.getElementById('btn-theme-' + t);
+        if (t === themeName) {
+          btn.className = 'px-2.5 py-1 text-xs font-medium rounded-lg bg-white shadow-xs border border-slate-300 text-slate-900';
+        } else {
+          btn.className = 'px-2.5 py-1 text-xs font-medium rounded-lg hover:bg-white text-slate-600';
+        }
+      });
+
+      const label = document.getElementById('opt1-theme-label');
+      if (label) label.innerText = themeName;
+      currentThemeIdx = themes.indexOf(themeName);
+    }
+
+    function cycleThemePreset() {
+      currentThemeIdx = (currentThemeIdx + 1) % themes.length;
+      setGlobalTheme(themes[currentThemeIdx]);
+    }
+
+    // Dropdown toggles
+    function toggleMenu(id) {
+      const el = document.getElementById(id);
+      if (el) {
+        el.classList.toggle('hidden');
+      }
+    }
+
+    // Close dropdowns when clicking outside
+    document.addEventListener('click', function(e) {
+      if (!e.target.closest('#opt1-project-dropdown') && !e.target.closest('button[onclick*="opt1-project-dropdown"]')) {
+        const d1 = document.getElementById('opt1-project-dropdown');
+        if (d1) d1.classList.add('hidden');
+      }
+      if (!e.target.closest('#opt2-overflow-dropdown') && !e.target.closest('button[onclick*="opt2-overflow-dropdown"]')) {
+        const d2 = document.getElementById('opt2-overflow-dropdown');
+        if (d2) d2.classList.add('hidden');
+      }
+      if (!e.target.closest('#opt3-mode-menu') && !e.target.closest('button[onclick*="opt3-mode-menu"]')) {
+        const d3 = document.getElementById('opt3-mode-menu');
+        if (d3) d3.classList.add('hidden');
+      }
+    });
+
+    // Initialize
+    updateContainerWidth(1150);
+  </script>
+</body>
+</html>

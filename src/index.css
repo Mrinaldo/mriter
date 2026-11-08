@@ -1,0 +1,256 @@
+@import "tailwindcss";
+
+@theme {
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-contrast: var(--accent-contrast);
+  --color-panel: var(--bg-panel);
+  --color-surface: var(--bg-surface);
+  --color-app: var(--bg-app);
+}
+
+@layer base {
+  :root {
+    --font-serif: 'EB Garamond', 'Lora', 'Georgia', serif;
+    --font-heading: 'Cinzel', 'EB Garamond', serif;
+    --font-body: 'Lora', 'Newsreader', serif;
+    --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  }
+}
+
+/* ========================================================
+   MUTED, SERENE COLOR THEMES FOR NOVELISTS & WRITERS
+   Low contrast, gentle on the eyes, harmonious palette
+   ======================================================== */
+
+/* 1. Muted Linen (Warm Paper & Oatmeal) — Default */
+:root,
+[data-theme="paper"],
+[data-theme="linen"],
+[data-theme="light"] {
+  --bg-app: #f7f5f2;
+  --bg-panel: #efece5;
+  --bg-surface: #faf8f5;
+  --bg-surface-hover: #e8e4dc;
+  --bg-surface-active: #e0dbd1;
+  --border-subtle: #e3ded6;
+  --border-muted: #d5cfc5;
+  --text-primary: #342f2b;
+  --text-secondary: #746d64;
+  --text-tertiary: #9b9388;
+  --accent: #87715b;
+  --accent-contrast: #ffffff;
+  --accent-soft: rgba(135, 113, 91, 0.12);
+  --accent-hover: #75614d;
+  --accent-text: #63513f;
+  --status-final: #6d826e;
+  --status-revised: #6f7f90;
+  --status-draft: #a6916f;
+  --status-idea: #8c8680;
+}
+
+/* 2. Muted Charcoal (Soft Graphite & Warm Umber Dark) */
+[data-theme="dark"],
+[data-theme="charcoal"] {
+  --bg-app: #201f1e;
+  --bg-panel: #272524;
+  --bg-surface: #2e2c2a;
+  --bg-surface-hover: #363432;
+  --bg-surface-active: #3f3c39;
+  --border-subtle: #383532;
+  --border-muted: #47433f;
+  --text-primary: #ded9d2;
+  --text-secondary: #8e8880;
+  --text-tertiary: #6d6861;
+  --accent: #b5a188;
+  --accent-contrast: #1c1a18;
+  --accent-soft: rgba(181, 161, 136, 0.14);
+  --accent-hover: #c4b097;
+  --accent-text: #cbbaa3;
+  --status-final: #6a826c;
+  --status-revised: #6c7c8c;
+  --status-draft: #a38c67;
+  --status-idea: #78736e;
+}
+
+/* 3. Muted Sepia (Antique Parchment & Tobacco) */
+[data-theme="sepia"] {
+  --bg-app: #f3edd9;
+  --bg-panel: #e9e1c9;
+  --bg-surface: #f7f2e4;
+  --bg-surface-hover: #dfd5ba;
+  --bg-surface-active: #d6cab0;
+  --border-subtle: #dcd0b5;
+  --border-muted: #cdbe9f;
+  --text-primary: #382d20;
+  --text-secondary: #746551;
+  --text-tertiary: #978770;
+  --accent: #8e714b;
+  --accent-contrast: #ffffff;
+  --accent-soft: rgba(142, 113, 75, 0.12);
+  --accent-hover: #7d623f;
+  --accent-text: #6b5334;
+  --status-final: #6c806c;
+  --status-revised: #6d7b88;
+  --status-draft: #9e855c;
+  --status-idea: #857a6e;
+}
+
+/* 4. Muted Sage (Morning Mist & Calming Green-Gray) */
+[data-theme="sage"] {
+  --bg-app: #f2f4f2;
+  --bg-panel: #e6ebe5;
+  --bg-surface: #f7faf7;
+  --bg-surface-hover: #dbe2da;
+  --bg-surface-active: #cfd8ce;
+  --border-subtle: #d6dfd5;
+  --border-muted: #c3cfc2;
+  --text-primary: #2b332c;
+  --text-secondary: #657166;
+  --text-tertiary: #879488;
+  --accent: #5a745f;
+  --accent-contrast: #ffffff;
+  --accent-soft: rgba(90, 116, 95, 0.12);
+  --accent-hover: #4c6450;
+  --accent-text: #425846;
+  --status-final: #5b785f;
+  --status-revised: #697886;
+  --status-draft: #9a8a6b;
+  --status-idea: #7f867e;
+}
+
+/* Semantic utility classes */
+.bg-app { background-color: var(--bg-app); }
+.bg-panel { background-color: var(--bg-panel); }
+.bg-surface { background-color: var(--bg-surface); }
+.border-subtle { border-color: var(--border-subtle); }
+.border-muted-theme { border-color: var(--border-muted); }
+.border-accent { border-color: var(--accent); }
+.text-main { color: var(--text-primary); }
+.text-muted-theme { color: var(--text-secondary); }
+.text-faint { color: var(--text-tertiary); }
+.text-accent { color: var(--accent); }
+.text-on-accent { color: var(--accent-contrast); }
+.bg-accent { background-color: var(--accent); color: var(--accent-contrast); }
+.bg-accent-soft { background-color: var(--accent-soft); }
+.hover\:bg-accent-hover:hover { background-color: var(--accent-hover); }
+
+/* Custom scrollbar for minimalist clean feel */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-subtle);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--border-muted);
+}
+
+/* TipTap Editor Styles */
+.tiptap {
+  outline: none;
+  min-height: 100%;
+}
+
+.tiptap p {
+  margin-bottom: 1.25em;
+  line-height: 1.85;
+  text-indent: 1.75em;
+}
+
+/* The first paragraph in a chapter or after a scene break has no indent in published books */
+.tiptap > p:first-child,
+.tiptap hr + p {
+  text-indent: 0;
+}
+
+.tiptap h1 {
+  font-family: var(--font-heading);
+  font-size: 2.15rem;
+  font-weight: 700;
+  text-align: center;
+  margin-top: 2rem;
+  margin-bottom: 2rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-primary);
+}
+
+.tiptap h2 {
+  font-family: var(--font-heading);
+  font-size: 1.45rem;
+  font-weight: 600;
+  text-align: center;
+  margin-top: 1.5rem;
+  margin-bottom: 1.5rem;
+  letter-spacing: 0.04em;
+  color: var(--text-primary);
+}
+
+.tiptap blockquote {
+  border-left: 2px solid var(--accent);
+  padding-left: 1.25rem;
+  margin-left: 1.5rem;
+  margin-right: 1.5rem;
+  font-style: italic;
+  opacity: 0.85;
+  color: var(--text-secondary);
+}
+
+.tiptap hr {
+  border: none;
+  text-align: center;
+  margin: 2.5rem 0;
+  position: relative;
+}
+
+.tiptap hr::after {
+  content: '✦   ✦   ✦';
+  display: inline-block;
+  letter-spacing: 0.5em;
+  font-size: 0.85rem;
+  opacity: 0.45;
+  color: var(--accent);
+}
+
+.tiptap p.is-editor-empty:first-child::before {
+  color: var(--text-tertiary);
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
+  font-style: italic;
+  text-indent: 0;
+}
+
+/* Print simulation for book preview */
+@media print {
+  body {
+    background: white !important;
+    color: black !important;
+  }
+}
+
+/* Electron frameless window dragging support */
+.titlebar-drag-region {
+  -webkit-app-region: drag;
+}
+
+.no-drag-region,
+.titlebar-drag-region button,
+.titlebar-drag-region input,
+.titlebar-drag-region select,
+.titlebar-drag-region nav,
+.titlebar-drag-region a,
+.titlebar-drag-region [role="button"] {
+  -webkit-app-region: no-drag;
+}
