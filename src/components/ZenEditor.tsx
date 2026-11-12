@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useRef, useState, useMemo } from 'react'
 import { useEditor, EditorContent } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 import Placeholder from '@tiptap/extension-placeholder'
@@ -26,6 +26,13 @@ import {
   AlignLeft,
   AlignJustify,
   SpellCheck,
+  Camera,
+  Columns2,
+  Layers,
+  FileText,
+  User,
+  Globe,
+  BookOpen,
 } from 'lucide-react'
 import { useManuscript, EditorFont, WORLD_CLASS_FONTS } from '../context/ManuscriptContext'
 import { isMacOS, formatKeyDisplay } from '../types/keymap'
@@ -38,7 +45,9 @@ export const ZenEditor: React.FC = () => {
     currentSection,
     currentChapter,
     activeSceneId,
+    setActiveSceneId,
     activeSectionId,
+    setActiveSectionId,
     updateSceneContent,
     updateSceneMetadata,
     updateSectionContent,
@@ -65,12 +74,64 @@ export const ZenEditor: React.FC = () => {
     spellCheckLanguage,
     setSpellCheckLanguage,
     openProjectSearch,
+    openSnapshotModal,
+    isScriveningsMode,
+    setIsScriveningsMode,
+    isSplitViewOpen,
+    setIsSplitViewOpen,
   } = useManuscript()
 
   const [sceneTitleInput, setSceneTitleInput] = useState('')
   const editorContainerRef = useRef<HTMLDivElement>(null)
   const findInputRef = useRef<HTMLInputElement>(null)
   const layoutMenuRef = useRef<HTMLDivElement>(null)
+
+  // Split View Reference State
+  const [splitReferenceType, setSplitReferenceType] = useState<'notes' | 'scene' | 'character' | 'world'>('notes')
+  const [splitSceneId, setSplitSceneId] = useState<string>('')
+  const [splitCharId, setSplitCharId] = useState<string>('')
+  const [splitWorldId, setSplitWorldId] = useState<string>('')
+
+  // All scenes across project for split-view reference
+  const allProjectScenes = useMemo(() => {
+    const list: { id: string; title: string; chapterTitle: string; content: string; wordCount: number }[] = []
+    project.parts.forEach((p) => {
+      p.chapters.forEach((c) => {
+        c.scenes.forEach((s) => {
+          list.push({
+            id: s.id,
+            title: s.title,
+            chapterTitle: c.title,
+            content: s.content,
+            wordCount: s.wordCount,
+          })
+        })
+      })
+    })
+    return list
+  }, [project])
+
+  const activeSplitScene = useMemo(() => {
+    if (splitSceneId) {
+      return allProjectScenes.find((s) => s.id === splitSceneId) || allProjectScenes[0] || null
+    }
+    const other = allProjectScenes.find((s) => s.id !== activeSceneId)
+    return other || allProjectScenes[0] || null
+  }, [allProjectScenes, splitSceneId, activeSceneId])
+
+  const activeSplitChar = useMemo(() => {
+    if (splitCharId) {
+      return project.characters.find((c) => c.id === splitCharId) || project.characters[0] || null
+    }
+    return project.characters[0] || null
+  }, [project.characters, splitCharId])
+
+  const activeSplitWorld = useMemo(() => {
+    if (splitWorldId) {
+      return project.worldBible.find((w) => w.id === splitWorldId) || project.worldBible[0] || null
+    }
+    return project.worldBible[0] || null
+  }, [project.worldBible, splitWorldId])
 
   // Floating Find & Replace Bar State
   const [isFindOpen, setIsFindOpen] = useState(false)
@@ -526,7 +587,7 @@ export const ZenEditor: React.FC = () => {
         </div>
 
         {/* Right: Search, Layout & Spacing freedom, Typography, & Typewriter */}
-        <div className="flex items-center space-x-1 sm:space-x-2 text-xs no-drag-region shrink-0 ml-auto">
+        <div className="flex items-center space-x-1 sm:space-x-1.5 text-xs no-drag-region shrink-0 ml-auto">
           {/* Quick In-Editor Find & Replace Toggle */}
           <button
             onClick={() => {
@@ -543,6 +604,37 @@ export const ZenEditor: React.FC = () => {
             title={`Find in Document (${formatKeyDisplay('Ctrl+F')})`}
           >
             <Search className="w-3.5 h-3.5" />
+          </button>
+
+          {/* Scene Snapshots & Revision Diffs (Ctrl+5) */}
+          <button
+            onClick={() => openSnapshotModal()}
+            className="p-1.5 rounded transition-colors shrink-0 cursor-pointer text-muted-theme hover:text-main hover:bg-surface"
+            title={`Scene Snapshots & Revisions (${formatKeyDisplay('Ctrl+5')})`}
+          >
+            <Camera className="w-3.5 h-3.5" />
+          </button>
+
+          {/* Scrivenings Continuous Canvas Toggle (Ctrl+Alt+C) */}
+          <button
+            onClick={() => setIsScriveningsMode(!isScriveningsMode)}
+            className={`p-1.5 rounded transition-colors shrink-0 cursor-pointer ${
+              isScriveningsMode ? 'bg-accent-soft text-accent' : 'text-muted-theme hover:text-main hover:bg-surface'
+            }`}
+            title={`Toggle Scrivenings Mode (${formatKeyDisplay('Ctrl+Alt+C')})`}
+          >
+            <Layers className="w-3.5 h-3.5" />
+          </button>
+
+          {/* Split Screen Dual Reference View (Ctrl+\) */}
+          <button
+            onClick={() => setIsSplitViewOpen(!isSplitViewOpen)}
+            className={`p-1.5 rounded transition-colors shrink-0 cursor-pointer ${
+              isSplitViewOpen ? 'bg-accent-soft text-accent' : 'text-muted-theme hover:text-main hover:bg-surface'
+            }`}
+            title={`Toggle Split Reference View (${formatKeyDisplay('Ctrl+\\')})`}
+          >
+            <Columns2 className="w-3.5 h-3.5" />
           </button>
 
           {/* Layout, Margins & Spacing Menu Dropdown */}
@@ -995,48 +1087,350 @@ export const ZenEditor: React.FC = () => {
         </div>
       )}
 
-      {/* Editor Content Area */}
-      <div
-        ref={editorContainerRef}
-        data-paragraph-style={paragraphStyle}
-        data-heading-align={project.projectType === 'article' ? 'left' : 'center'}
-        className="flex-1 overflow-y-auto relative scroll-smooth"
-      >
-        <div
-          className={`${layoutClasses.widthClass} mx-auto px-6 sm:px-10 pt-8 pb-32 ${fontConfig.fontClass} ${layoutClasses.fontSizeClass} ${layoutClasses.lineSpacingClass} ${layoutClasses.alignClass}`}
-          style={{ fontFamily: fontConfig.css }}
-        >
-          {/* Scene / Chapter Header */}
-          <div className="mb-6 pb-3 border-b border-subtle">
-            {showChapterSubtitle && isScene && currentChapter && currentChapter.title && currentChapter.title.trim() && (
-              <p
-                className="text-[10px] uppercase tracking-widest text-faint mb-1.5"
-                style={{ fontFamily: 'inherit' }}
+      {/* Main Workspace Body (Supports Single Editor or Dual-Pane Split View) */}
+      <div className="flex-1 flex overflow-hidden relative">
+        {/* Primary Editor Pane */}
+        <div className={`flex-1 flex flex-col overflow-hidden ${isSplitViewOpen ? 'border-r border-subtle' : ''}`}>
+          {/* If Scrivenings Mode is enabled, render top chapter overview bar */}
+          {isScriveningsMode && currentChapter && (
+            <div className="bg-accent-soft/70 border-b border-subtle px-6 py-2 flex items-center justify-between text-xs text-main select-none shrink-0 backdrop-blur-xs">
+              <div className="flex items-center space-x-2">
+                <Layers className="w-4 h-4 text-accent" />
+                <span className="font-semibold text-main">Scrivenings Canvas</span>
+                <span className="text-faint">•</span>
+                <span className="text-muted-theme">
+                  Chapter: <strong>{currentChapter.title}</strong> ({currentChapter.scenes.length} scenes,{' '}
+                  {currentChapter.scenes.reduce((acc, s) => acc + (s.wordCount || 0), 0).toLocaleString()} words)
+                </span>
+              </div>
+              <button
+                onClick={() => setIsScriveningsMode(false)}
+                className="text-[11px] text-muted-theme hover:text-main px-2 py-0.5 rounded hover:bg-surface border border-subtle transition-colors cursor-pointer"
               >
-                {currentChapter.title}
-              </p>
-            )}
-            <input
-              type="text"
-              value={sceneTitleInput}
-              spellCheck={spellCheckEnabled}
-              onChange={(e) => {
-                setSceneTitleInput(e.target.value)
-                if (isScene && activeSceneId) {
-                  updateSceneMetadata(activeSceneId, { title: e.target.value })
-                }
-              }}
-              placeholder={project.projectType === 'article' ? 'Article Title...' : 'Untitled Scene...'}
-              className="w-full bg-transparent text-2xl font-bold tracking-tight outline-none placeholder:text-faint text-main"
-              style={{ fontFamily: 'inherit' }}
-            />
-          </div>
+                Exit Scrivenings
+              </button>
+            </div>
+          )}
 
-          {/* TipTap Surface */}
-          <div style={{ fontFamily: 'inherit' }}>
-            <EditorContent editor={editor} />
+          {/* Editor Content Area */}
+          <div
+            ref={editorContainerRef}
+            data-paragraph-style={paragraphStyle}
+            data-heading-align={project.projectType === 'article' ? 'left' : 'center'}
+            className="flex-1 overflow-y-auto relative scroll-smooth"
+          >
+            <div
+              className={`${layoutClasses.widthClass} mx-auto px-6 sm:px-10 pt-8 pb-32 ${fontConfig.fontClass} ${layoutClasses.fontSizeClass} ${layoutClasses.lineSpacingClass} ${layoutClasses.alignClass}`}
+              style={{ fontFamily: fontConfig.css }}
+            >
+              {isScriveningsMode && currentChapter ? (
+                /* Continuous Scrivenings Multi-Scene Canvas */
+                <div className="space-y-12">
+                  {currentChapter.scenes.map((sc, sIdx) => {
+                    const isCurrent = sc.id === activeSceneId
+                    return (
+                      <div key={sc.id} className="relative">
+                        {/* Divider between scenes */}
+                        {sIdx > 0 && (
+                          <div className="my-8 flex items-center justify-center relative select-none">
+                            <div className="absolute inset-0 flex items-center">
+                              <div className="w-full border-t border-subtle border-dashed" />
+                            </div>
+                            <span className="relative bg-app px-3 text-[10px] uppercase font-mono tracking-widest text-faint">
+                              ✦ Scene Break ✦
+                            </span>
+                          </div>
+                        )}
+
+                        <div className="mb-4 pb-2 border-b border-subtle flex items-center justify-between">
+                          <div className="flex items-center space-x-2">
+                            <span className="text-[10px] uppercase tracking-widest font-mono text-faint">
+                              {sIdx + 1}.
+                            </span>
+                            <h3 className="font-serif font-bold text-lg text-main">
+                              {sc.title}
+                            </h3>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <span className="text-[10px] font-mono text-faint">
+                              {sc.wordCount || 0}w
+                            </span>
+                            {!isCurrent && (
+                              <button
+                                onClick={() => setActiveSceneId(sc.id)}
+                                className="text-[10px] text-accent hover:underline bg-accent-soft px-2 py-0.5 rounded cursor-pointer"
+                              >
+                                Edit This Scene
+                              </button>
+                            )}
+                          </div>
+                        </div>
+
+                        {isCurrent ? (
+                          <div style={{ fontFamily: 'inherit' }}>
+                            <EditorContent editor={editor} />
+                          </div>
+                        ) : (
+                          <div
+                            onClick={() => setActiveSceneId(sc.id)}
+                            className="text-muted-theme/90 hover:text-main cursor-pointer transition-colors"
+                            dangerouslySetInnerHTML={{
+                              __html: sc.content || '<p class="italic text-faint">Empty scene...</p>',
+                            }}
+                          />
+                        )}
+                      </div>
+                    )
+                  })}
+                </div>
+              ) : (
+                /* Standard Single Scene Canvas */
+                <>
+                  {/* Scene / Chapter Header */}
+                  <div className="mb-6 pb-3 border-b border-subtle">
+                    {showChapterSubtitle && isScene && currentChapter && currentChapter.title && currentChapter.title.trim() && (
+                      <p
+                        className="text-[10px] uppercase tracking-widest text-faint mb-1.5"
+                        style={{ fontFamily: 'inherit' }}
+                      >
+                        {currentChapter.title}
+                      </p>
+                    )}
+                    <input
+                      type="text"
+                      value={sceneTitleInput}
+                      spellCheck={spellCheckEnabled}
+                      onChange={(e) => {
+                        setSceneTitleInput(e.target.value)
+                        if (isScene && activeSceneId) {
+                          updateSceneMetadata(activeSceneId, { title: e.target.value })
+                        }
+                      }}
+                      placeholder={project.projectType === 'article' ? 'Article Title...' : 'Untitled Scene...'}
+                      className="w-full bg-transparent text-2xl font-bold tracking-tight outline-none placeholder:text-faint text-main"
+                      style={{ fontFamily: 'inherit' }}
+                    />
+                  </div>
+
+                  {/* TipTap Surface */}
+                  <div style={{ fontFamily: 'inherit' }}>
+                    <EditorContent editor={editor} />
+                  </div>
+                </>
+              )}
+            </div>
           </div>
         </div>
+
+        {/* Secondary Split Reference Column */}
+        {isSplitViewOpen && (
+          <div className="w-1/2 flex flex-col bg-panel overflow-hidden border-l border-subtle animate-in slide-in-from-right-4 duration-200">
+            {/* Split Pane Control Header */}
+            <div className="h-10 px-4 border-b border-subtle flex items-center justify-between bg-surface shrink-0">
+              <div className="flex items-center space-x-1">
+                <span className="text-[10px] uppercase font-semibold text-faint tracking-wider mr-2">
+                  Reference:
+                </span>
+                <select
+                  value={splitReferenceType}
+                  onChange={(e) => setSplitReferenceType(e.target.value as any)}
+                  className="bg-panel text-main text-xs px-2 py-1 rounded border border-subtle outline-none cursor-pointer"
+                >
+                  <option value="notes">Scene Synopsis & Notes</option>
+                  <option value="scene">Manuscript Scene</option>
+                  <option value="character">Character Bible</option>
+                  <option value="world">World Lore & Bible</option>
+                </select>
+              </div>
+
+              {/* Target Picker based on reference type */}
+              {splitReferenceType === 'scene' && (
+                <select
+                  value={activeSplitScene?.id || ''}
+                  onChange={(e) => setSplitSceneId(e.target.value)}
+                  className="bg-panel text-main text-xs px-2 py-1 rounded border border-subtle outline-none max-w-[160px] truncate cursor-pointer"
+                >
+                  {allProjectScenes.map((s) => (
+                    <option key={s.id} value={s.id}>
+                      {s.chapterTitle} • {s.title}
+                    </option>
+                  ))}
+                </select>
+              )}
+
+              {splitReferenceType === 'character' && (
+                <select
+                  value={activeSplitChar?.id || ''}
+                  onChange={(e) => setSplitCharId(e.target.value)}
+                  className="bg-panel text-main text-xs px-2 py-1 rounded border border-subtle outline-none max-w-[160px] truncate cursor-pointer"
+                >
+                  {project.characters.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.name} ({c.role})
+                    </option>
+                  ))}
+                </select>
+              )}
+
+              {splitReferenceType === 'world' && (
+                <select
+                  value={activeSplitWorld?.id || ''}
+                  onChange={(e) => setSplitWorldId(e.target.value)}
+                  className="bg-panel text-main text-xs px-2 py-1 rounded border border-subtle outline-none max-w-[160px] truncate cursor-pointer"
+                >
+                  {project.worldBible.map((w) => (
+                    <option key={w.id} value={w.id}>
+                      {w.name} ({w.category})
+                    </option>
+                  ))}
+                </select>
+              )}
+
+              <button
+                onClick={() => setIsSplitViewOpen(false)}
+                className="p-1 rounded text-muted-theme hover:text-main hover:bg-panel transition-colors cursor-pointer"
+                title="Close Split View (Ctrl+\)"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </div>
+
+            {/* Split Pane Content Body */}
+            <div className="flex-1 overflow-y-auto p-6 text-xs text-main bg-app">
+              {splitReferenceType === 'notes' && isScene && currentScene && (
+                <div className="space-y-4 max-w-lg mx-auto">
+                  <div>
+                    <label className="text-[10px] uppercase font-semibold text-faint tracking-wider block mb-1">
+                      Scene Synopsis
+                    </label>
+                    <textarea
+                      value={currentScene.synopsis || ''}
+                      onChange={(e) => updateSceneMetadata(currentScene.id, { synopsis: e.target.value })}
+                      placeholder="Summary of character goals, conflicts, and beat progression..."
+                      rows={5}
+                      className="w-full bg-surface text-main text-xs p-3 rounded-lg border border-subtle focus:border-accent outline-none placeholder:text-faint resize-y"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-[10px] uppercase font-semibold text-faint tracking-wider block mb-1">
+                      Author Notes & Research
+                    </label>
+                    <textarea
+                      value={currentScene.notes || ''}
+                      onChange={(e) => updateSceneMetadata(currentScene.id, { notes: e.target.value })}
+                      placeholder="Sensory details, pacing notes, reminders for revision..."
+                      rows={8}
+                      className="w-full bg-surface text-main text-xs p-3 rounded-lg border border-subtle focus:border-accent outline-none placeholder:text-faint resize-y"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {splitReferenceType === 'scene' && activeSplitScene && (
+                <div className="max-w-lg mx-auto space-y-4">
+                  <div className="border-b border-subtle pb-2">
+                    <p className="text-[10px] uppercase font-mono tracking-wider text-faint">
+                      {activeSplitScene.chapterTitle}
+                    </p>
+                    <h3 className="font-serif font-bold text-base text-main">
+                      {activeSplitScene.title}
+                    </h3>
+                    <span className="text-[10px] font-mono text-faint">
+                      {activeSplitScene.wordCount} words
+                    </span>
+                  </div>
+                  <div
+                    className={`leading-relaxed text-sm ${fontConfig.fontClass}`}
+                    style={{ fontFamily: fontConfig.css }}
+                    dangerouslySetInnerHTML={{ __html: activeSplitScene.content }}
+                  />
+                </div>
+              )}
+
+              {splitReferenceType === 'character' && activeSplitChar && (
+                <div className="max-w-lg mx-auto space-y-4">
+                  <div className="border-b border-subtle pb-2">
+                    <div className="flex items-center space-x-2">
+                      <h3 className="font-serif font-bold text-base text-main">
+                        {activeSplitChar.name}
+                      </h3>
+                      <span className="text-[10px] font-medium uppercase tracking-wider px-2 py-0.5 rounded-full bg-accent-soft text-accent">
+                        {activeSplitChar.role}
+                      </span>
+                    </div>
+                    {activeSplitChar.archetype && (
+                      <p className="text-xs text-muted-theme mt-0.5">{activeSplitChar.archetype}</p>
+                    )}
+                  </div>
+
+                  {activeSplitChar.traits?.length > 0 && (
+                    <div className="flex flex-wrap gap-1">
+                      {activeSplitChar.traits.map((t, i) => (
+                        <span
+                          key={i}
+                          className="text-[10px] bg-surface px-2 py-0.5 rounded border border-subtle text-muted-theme"
+                        >
+                          {t}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+
+                  {activeSplitChar.goal && (
+                    <div>
+                      <span className="text-[10px] uppercase font-semibold text-faint block">Goal</span>
+                      <p className="text-xs text-main">{activeSplitChar.goal}</p>
+                    </div>
+                  )}
+
+                  {activeSplitChar.conflict && (
+                    <div>
+                      <span className="text-[10px] uppercase font-semibold text-faint block">Conflict</span>
+                      <p className="text-xs text-main">{activeSplitChar.conflict}</p>
+                    </div>
+                  )}
+
+                  {activeSplitChar.bio && (
+                    <div>
+                      <span className="text-[10px] uppercase font-semibold text-faint block">Background & Bio</span>
+                      <p className="text-xs text-main whitespace-pre-wrap">{activeSplitChar.bio}</p>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {splitReferenceType === 'world' && activeSplitWorld && (
+                <div className="max-w-lg mx-auto space-y-4">
+                  <div className="border-b border-subtle pb-2">
+                    <div className="flex items-center space-x-2">
+                      <h3 className="font-serif font-bold text-base text-main">
+                        {activeSplitWorld.name}
+                      </h3>
+                      <span className="text-[10px] font-medium uppercase tracking-wider px-2 py-0.5 rounded-full bg-accent-soft text-accent">
+                        {activeSplitWorld.category}
+                      </span>
+                    </div>
+                  </div>
+
+                  {activeSplitWorld.description && (
+                    <div>
+                      <span className="text-[10px] uppercase font-semibold text-faint block">Description</span>
+                      <p className="text-xs text-main whitespace-pre-wrap">{activeSplitWorld.description}</p>
+                    </div>
+                  )}
+
+                  {activeSplitWorld.notes && (
+                    <div>
+                      <span className="text-[10px] uppercase font-semibold text-faint block">Lore & Notes</span>
+                      <p className="text-xs text-main whitespace-pre-wrap">{activeSplitWorld.notes}</p>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Bottom Scene Status Bar */}
@@ -1064,6 +1458,29 @@ export const ZenEditor: React.FC = () => {
         </div>
 
         <div className="flex items-center space-x-2">
+          {currentScene?.snapshots && currentScene.snapshots.length > 0 && (
+            <button
+              onClick={() => openSnapshotModal()}
+              className="hover:text-main cursor-pointer text-muted-theme hover:bg-surface px-1.5 py-0.5 rounded transition-colors flex items-center space-x-1"
+              title="Open Scene Snapshots & Revisions"
+            >
+              <Camera className="w-3 h-3 text-faint" />
+              <span>{currentScene.snapshots.length} {currentScene.snapshots.length === 1 ? 'snapshot' : 'snapshots'}</span>
+            </button>
+          )}
+
+          {isScriveningsMode && (
+            <span className="px-1.5 py-0.5 rounded text-[9px] bg-accent-soft text-accent font-medium">
+              Scrivenings
+            </span>
+          )}
+
+          {isSplitViewOpen && (
+            <span className="px-1.5 py-0.5 rounded text-[9px] bg-accent-soft text-accent font-medium">
+              Split Reference
+            </span>
+          )}
+
           {isScene && currentScene && (
             <span className="capitalize px-2 py-0.5 rounded text-[9px] bg-accent-soft text-accent font-medium">
               {currentScene.status}

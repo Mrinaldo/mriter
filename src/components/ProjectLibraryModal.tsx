@@ -31,6 +31,7 @@ import {
 import { useManuscript } from '../context/ManuscriptContext'
 import { ManuscriptProject } from '../types/manuscript'
 import { BookCoverThumbnail } from './BookCoverThumbnail'
+import { importManuscriptFile } from '../utils/manuscriptImporter'
 
 interface ProjectLibraryModalProps {
   isOpen: boolean
@@ -376,22 +377,41 @@ export const ProjectLibraryModal: React.FC<ProjectLibraryModalProps> = ({ isOpen
     URL.revokeObjectURL(url)
   }
 
-  // Drag and drop import handler
-  const handleDrop = async (e: React.DragEvent) => {
-    e.preventDefault()
-    setIsDraggingFile(false)
-    const file = e.dataTransfer.files?.[0]
-    if (file && (file.name.endsWith('.mriter') || file.name.endsWith('.json'))) {
-      try {
+  const fileImportInputRef = useRef<HTMLInputElement>(null)
+
+  const processImportFile = async (file: File) => {
+    try {
+      if (file.name.endsWith('.mriter') || file.name.endsWith('.json')) {
         const text = await file.text()
         const imported = JSON.parse(text)
         if (imported && imported.title && imported.parts) {
           importProjectData(imported)
           onClose()
         }
-      } catch (err) {
-        console.error('Failed to import dropped file', err)
+      } else if (
+        file.name.endsWith('.md') ||
+        file.name.endsWith('.txt') ||
+        file.name.endsWith('.docx')
+      ) {
+        const summary = await importManuscriptFile(file)
+        importProjectData(summary.project)
+        onClose()
+      } else {
+        alert('Please choose a Word (.docx), Markdown (.md), Plain Text (.txt), or .mriter file.')
       }
+    } catch (err) {
+      console.error('Failed to import file', err)
+      alert('Failed to parse manuscript: ' + (err as Error).message)
+    }
+  }
+
+  // Drag and drop import handler
+  const handleDrop = async (e: React.DragEvent) => {
+    e.preventDefault()
+    setIsDraggingFile(false)
+    const file = e.dataTransfer.files?.[0]
+    if (file) {
+      await processImportFile(file)
     }
   }
 
@@ -436,9 +456,22 @@ export const ProjectLibraryModal: React.FC<ProjectLibraryModalProps> = ({ isOpen
           <div className="absolute inset-0 bg-panel/95 backdrop-blur-md z-50 flex flex-col items-center justify-center border-2 border-dashed border-accent m-3 rounded-xl animate-in fade-in">
             <UploadCloud className="w-12 h-12 text-accent mb-3 animate-bounce" />
             <h3 className="font-serif text-lg font-bold text-main">Drop Manuscript to Import</h3>
-            <p className="text-xs text-muted-theme mt-1">Accepts .mriter and JSON project archives</p>
+            <p className="text-xs text-muted-theme mt-1">Accepts Word (.docx), Markdown (.md), Plain Text (.txt), and .mriter archives</p>
           </div>
         )}
+
+        {/* Hidden File Import Input */}
+        <input
+          ref={fileImportInputRef}
+          type="file"
+          accept=".docx,.md,.txt,.mriter,.json"
+          className="hidden"
+          onChange={(e) => {
+            const file = e.target.files?.[0]
+            if (file) processImportFile(file)
+            e.target.value = ''
+          }}
+        />
 
         {/* Modal Top Header */}
         <div className="px-6 py-4 border-b border-subtle flex items-center justify-between shrink-0 bg-surface">
@@ -811,12 +844,9 @@ export const ProjectLibraryModal: React.FC<ProjectLibraryModalProps> = ({ isOpen
 
                 {/* Import Button */}
                 <button
-                  onClick={() => {
-                    openProjectFile()
-                    onClose()
-                  }}
+                  onClick={() => fileImportInputRef.current?.click()}
                   className="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-panel hover:bg-surface text-main border border-subtle shadow-xs hover:border-[var(--border-muted)] transition-colors cursor-pointer"
-                  title="Import an existing .mriter file from your computer"
+                  title="Import Word (.docx), Markdown (.md), Text (.txt), or .mriter file"
                 >
                   <FolderOpen className="w-3.5 h-3.5 text-muted-theme" />
                   <span>Import</span>

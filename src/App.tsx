@@ -12,6 +12,7 @@ import { ProjectLibraryModal } from './components/ProjectLibraryModal'
 import { ActionPaletteModal } from './components/ActionPaletteModal'
 import { KeymapSettingsModal } from './components/KeymapSettingsModal'
 import { ProjectSearchModal } from './components/ProjectSearchModal'
+import { SceneSnapshotModal } from './components/SceneSnapshotModal'
 import { SceneStatus } from './types/manuscript'
 import { ChevronRight, PanelLeftOpen, Search } from 'lucide-react'
 
@@ -42,6 +43,11 @@ const MainLayout: React.FC = () => {
     updateSceneMetadata,
     openProjectSearch,
     toggleSpellCheck,
+    openSnapshotModal,
+    isSplitViewOpen,
+    setIsSplitViewOpen,
+    isScriveningsMode,
+    setIsScriveningsMode,
   } = useManuscript()
 
   const { registerActionHandler } = useKeymap()
@@ -233,6 +239,9 @@ const MainLayout: React.FC = () => {
     unsubs.push(registerActionHandler('project.open', () => openProjectFile()))
     unsubs.push(registerActionHandler('project.new', () => newProject()))
     unsubs.push(registerActionHandler('system.projectSearch', () => openProjectSearch()))
+    unsubs.push(registerActionHandler('scene.snapshot', () => openSnapshotModal()))
+    unsubs.push(registerActionHandler('editor.split', () => setIsSplitViewOpen(!isSplitViewOpen)))
+    unsubs.push(registerActionHandler('editor.scrivenings', () => setIsScriveningsMode(!isScriveningsMode)))
 
     // 5. In-Editor Formatting
     unsubs.push(
@@ -421,6 +430,9 @@ const MainLayout: React.FC = () => {
 
       {/* Global Project Search & Replace & Character Renaming Modal */}
       <ProjectSearchModal />
+
+      {/* Point-in-time Scene Snapshots & Revision Diffs Modal */}
+      <SceneSnapshotModal />
 
       {/* Keyboard Shortcuts Keymap Configuration Dialog (IntelliJ Style) */}
       <KeymapSettingsModal />

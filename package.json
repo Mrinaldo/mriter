@@ -1,6 +1,6 @@
 {
   "name": "mriter",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "description": "Distraction-free desktop manuscript writing and book publishing studio for novelists and authors",
   "main": "dist-electron/main.js",
   "repository": {

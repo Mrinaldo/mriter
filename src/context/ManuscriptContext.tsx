@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect, useCallback } fr
 import {
   ManuscriptProject,
   SceneItem,
+  SceneSnapshot,
   ChapterItem,
   PartItem,
   FrontBackMatterItem,
@@ -182,6 +183,20 @@ interface ManuscriptContextType {
   updateWorldItem: (id: string, updates: Partial<WorldItem>) => void
   deleteWorldItem: (id: string) => void
   
+  // Phase 3: Snapshots, Scrivenings & Split View
+  isSnapshotModalOpen: boolean
+  setIsSnapshotModalOpen: (open: boolean) => void
+  snapshotActiveSceneId: string | null
+  setSnapshotActiveSceneId: (id: string | null) => void
+  openSnapshotModal: (sceneId?: string) => void
+  takeSnapshot: (sceneId: string, label?: string) => SceneSnapshot | null
+  restoreSnapshot: (sceneId: string, snapshotId: string) => void
+  deleteSnapshot: (sceneId: string, snapshotId: string) => void
+  isScriveningsMode: boolean
+  setIsScriveningsMode: React.Dispatch<React.SetStateAction<boolean>>
+  isSplitViewOpen: boolean
+  setIsSplitViewOpen: React.Dispatch<React.SetStateAction<boolean>>
+
   // File System
   saveProjectFile: (asNew?: boolean) => Promise<boolean>
   openProjectFile: () => Promise<boolean>
@@ -318,6 +333,20 @@ export const ManuscriptProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   // Global Project Search & Replace Modal State
   const [isProjectSearchOpen, setIsProjectSearchOpen] = useState(false)
   const [projectSearchInitialQuery, setProjectSearchInitialQuery] = useState('')
+
+  // Phase 3: Snapshots, Scrivenings & Split View Mode States
+  const [isSnapshotModalOpen, setIsSnapshotModalOpen] = useState(false)
+  const [snapshotActiveSceneId, setSnapshotActiveSceneId] = useState<string | null>(null)
+  const [isScriveningsMode, setIsScriveningsMode] = useState<boolean>(false)
+  const [isSplitViewOpen, setIsSplitViewOpen] = useState<boolean>(false)
+
+  const openSnapshotModal = useCallback((sceneId?: string) => {
+    const targetId = sceneId || activeSceneId
+    if (targetId) {
+      setSnapshotActiveSceneId(targetId)
+      setIsSnapshotModalOpen(true)
+    }
+  }, [activeSceneId])
 
   const openProjectSearch = useCallback((initialQuery?: string) => {
     if (initialQuery !== undefined) {
@@ -1332,6 +1361,134 @@ export const ManuscriptProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     setIsDirty(true)
   }, [])
 
+  // Take Point-in-time Scene Snapshot
+  const takeSnapshot = useCallback((sceneId: string, label?: string): SceneSnapshot | null => {
+    let createdSnapshot: SceneSnapshot | null = null
+    const now = new Date().toISOString()
+    const snapId = 'snap-' + Math.random().toString(36).substring(2, 9)
+
+    setProject((prev) => {
+      let found = false
+      const newParts = prev.parts.map((p) => ({
+        ...p,
+        chapters: p.chapters.map((c) => ({
+          ...c,
+          scenes: c.scenes.map((s) => {
+            if (s.id !== sceneId) return s
+            found = true
+            const snapshot: SceneSnapshot = {
+              id: snapId,
+              sceneId: s.id,
+              title: s.title,
+              content: s.content,
+              plainText: s.plainText,
+              wordCount: s.wordCount,
+              createdAt: now,
+              label: label?.trim() || undefined,
+            }
+            createdSnapshot = snapshot
+            const existingSnapshots = s.snapshots || []
+            return {
+              ...s,
+              snapshots: [snapshot, ...existingSnapshots],
+            }
+          }),
+        })),
+      }))
+
+      if (!found) return prev
+      return {
+        ...prev,
+        parts: newParts,
+        updatedAt: now,
+      }
+    })
+
+    setIsDirty(true)
+    return createdSnapshot
+  }, [])
+
+  // Restore Scene Snapshot (with safety automatic backup)
+  const restoreSnapshot = useCallback((sceneId: string, snapshotId: string) => {
+    const now = new Date().toISOString()
+    setProject((prev) => {
+      let snapshotToRestore: SceneSnapshot | null = null
+      for (const p of prev.parts) {
+        for (const c of p.chapters) {
+          for (const s of c.scenes) {
+            if (s.id === sceneId && s.snapshots) {
+              snapshotToRestore = s.snapshots.find((snap) => snap.id === snapshotId) || null
+              break
+            }
+          }
+          if (snapshotToRestore) break
+        }
+        if (snapshotToRestore) break
+      }
+
+      if (!snapshotToRestore) return prev
+
+      const safetySnapId = 'snap-' + Math.random().toString(36).substring(2, 9)
+
+      const newParts = prev.parts.map((p) => ({
+        ...p,
+        chapters: p.chapters.map((c) => ({
+          ...c,
+          scenes: c.scenes.map((s) => {
+            if (s.id !== sceneId) return s
+            const safetySnapshot: SceneSnapshot = {
+              id: safetySnapId,
+              sceneId: s.id,
+              title: s.title,
+              content: s.content,
+              plainText: s.plainText,
+              wordCount: s.wordCount,
+              createdAt: now,
+              label: `Auto-backup before restoring "${snapshotToRestore?.label || 'snapshot'}"`,
+            }
+            return {
+              ...s,
+              content: snapshotToRestore.content,
+              plainText: snapshotToRestore.plainText,
+              wordCount: snapshotToRestore.wordCount,
+              updatedAt: now,
+              snapshots: [safetySnapshot, ...(s.snapshots || [])],
+            }
+          }),
+        })),
+      }))
+
+      return {
+        ...prev,
+        parts: newParts,
+        updatedAt: now,
+      }
+    })
+    setIsDirty(true)
+  }, [])
+
+  // Delete Scene Snapshot
+  const deleteSnapshot = useCallback((sceneId: string, snapshotId: string) => {
+    setProject((prev) => ({
+      ...prev,
+      parts: prev.parts.map((p) => ({
+        ...p,
+        chapters: p.chapters.map((c) => ({
+          ...c,
+          scenes: c.scenes.map((s) => {
+            if (s.id !== sceneId || !s.snapshots) return s
+            return {
+              ...s,
+              snapshots: s.snapshots.filter((snap) => snap.id !== snapshotId),
+            }
+          }),
+        })),
+      })),
+      updatedAt: new Date().toISOString(),
+    }))
+    setIsDirty(true)
+  }, [])
+
   // Replace Selected Occurrences by Scene
   const replaceSelectedOccurrences = useCallback(
     (replacementsByScene: Record<string, { start: number; length: number; replacement: string }[]>) => {
@@ -1722,6 +1879,18 @@ export const ManuscriptProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         moveChapter,
         duplicateScene,
         replaceSelectedOccurrences,
+        isSnapshotModalOpen,
+        setIsSnapshotModalOpen,
+        snapshotActiveSceneId,
+        setSnapshotActiveSceneId,
+        openSnapshotModal,
+        takeSnapshot,
+        restoreSnapshot,
+        deleteSnapshot,
+        isScriveningsMode,
+        setIsScriveningsMode,
+        isSplitViewOpen,
+        setIsSplitViewOpen,
         addCharacter,
         updateCharacter,
         deleteCharacter,

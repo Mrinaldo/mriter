@@ -10,6 +10,17 @@ export type SectionType =
   | 'about-author'
   | 'custom'
 
+export interface SceneSnapshot {
+  id: string
+  sceneId: string
+  title: string
+  content: string // HTML
+  plainText?: string
+  wordCount: number
+  createdAt: string
+  label?: string
+}
+
 export interface SceneItem {
   id: string
   title: string
@@ -21,6 +32,7 @@ export interface SceneItem {
   wordCount: number
   targetWords?: number
   notes: string
+  snapshots?: SceneSnapshot[]
   createdAt: string
   updatedAt: string
 }
