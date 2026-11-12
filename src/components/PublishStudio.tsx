@@ -937,9 +937,9 @@ export const PublishStudio: React.FC = () => {
         )}
 
         {/* Center: Live Device Previewer */}
-        <div className="flex-1 flex flex-col items-center justify-between p-5 overflow-hidden bg-app">
+        <div className="flex-1 min-h-0 flex flex-col items-center justify-between p-3 sm:p-4 overflow-hidden bg-app">
           {/* Device and Page Controls Header */}
-          <div className="w-full max-w-2xl flex items-center justify-between mb-3 select-none">
+          <div className="w-full max-w-2xl flex items-center justify-between mb-2 shrink-0 select-none">
             {/* Device selector */}
             <div className="flex items-center space-x-1 bg-surface p-0.5 rounded-md border border-subtle">
               <button
@@ -988,18 +988,18 @@ export const PublishStudio: React.FC = () => {
           </div>
 
           {/* Device Mockup Frame */}
-          <div className="flex-1 flex items-center justify-center w-full overflow-hidden">
+          <div className="flex-1 min-h-0 flex items-center justify-center w-full p-2 sm:p-4 overflow-hidden">
             <div
-              className={`transition-all duration-300 rounded-2xl shadow-2xl overflow-hidden flex flex-col border border-subtle bg-surface text-main relative ${
+              className={`transition-all duration-300 rounded-2xl shadow-2xl overflow-hidden flex flex-col border border-subtle bg-surface text-main relative h-full max-h-full ${
                 devicePreview === 'ereader'
-                  ? 'w-[520px] h-[640px] ring-12 ring-[#222120] bg-[#fbf9f4] dark:bg-[#1f1d1b]'
+                  ? 'w-full max-w-[500px] max-h-[620px] ring-[12px] ring-[#222120] bg-[#fbf9f4] dark:bg-[#1f1d1b]'
                   : devicePreview === 'phone'
-                  ? 'w-[360px] h-[650px] ring-10 ring-[#1c1a18] rounded-3xl bg-[#fdfcf9] dark:bg-[#1a1918]'
+                  ? 'w-full max-w-[340px] max-h-[620px] ring-[10px] ring-[#1c1a18] rounded-3xl bg-[#fdfcf9] dark:bg-[#1a1918]'
                   : exportSettings.trimSize === '5x8'
-                  ? 'w-[470px] h-[650px] shadow-2xl bg-[#fdfbf7] dark:bg-[#23211f]'
+                  ? 'w-full max-w-[450px] max-h-[620px] shadow-2xl bg-[#fdfbf7] dark:bg-[#23211f]'
                   : exportSettings.trimSize === '6x9'
-                  ? 'w-[540px] h-[690px] shadow-2xl bg-[#fdfbf7] dark:bg-[#23211f]'
-                  : 'w-[500px] h-[660px] shadow-2xl bg-[#fdfbf7] dark:bg-[#23211f]'
+                  ? 'w-full max-w-[510px] max-h-[650px] shadow-2xl bg-[#fdfbf7] dark:bg-[#23211f]'
+                  : 'w-full max-w-[480px] max-h-[630px] shadow-2xl bg-[#fdfbf7] dark:bg-[#23211f]'
               }`}
             >
               {/* Subtle Book Spine Gutter shadow when in Print Preview */}
@@ -1033,7 +1033,7 @@ export const PublishStudio: React.FC = () => {
               )}
 
               {/* Reader Interior Scroll Surface */}
-              <div className="flex-1 overflow-y-auto px-8 sm:px-14 py-8 scroll-smooth select-text">
+              <div className="flex-1 overflow-y-auto px-6 sm:px-12 py-5 sm:py-6 scroll-smooth select-text">
                 {currentSection && (
                   <div
                     className={`w-full max-w-prose mx-auto ${
@@ -1050,11 +1050,11 @@ export const PublishStudio: React.FC = () => {
                   >
                     {currentSection.isCover ? (
                       /* Full Cover Page */
-                      <div className="h-full min-h-[460px] flex flex-col items-center justify-center py-4">
+                      <div className="h-full min-h-[280px] flex flex-col items-center justify-center py-2">
                         <img
                           src={exportSettings.coverImage}
                           alt="Cover Page"
-                          className="max-h-[480px] w-auto object-contain rounded-lg shadow-xl border border-subtle"
+                          className="max-h-[480px] max-h-full w-auto object-contain rounded-lg shadow-xl border border-subtle"
                         />
                       </div>
                     ) : (
@@ -1153,7 +1153,7 @@ export const PublishStudio: React.FC = () => {
           </div>
 
           {/* Section Navigation & Quick Jump Dropdown */}
-          <div className="w-full max-w-lg flex items-center justify-between mt-3 select-none">
+          <div className="w-full max-w-lg flex items-center justify-between mt-2 shrink-0 select-none">
             <button
               onClick={() => setCurrentPreviewIndex((prev) => Math.max(0, prev - 1))}
               disabled={safeIndex === 0}
