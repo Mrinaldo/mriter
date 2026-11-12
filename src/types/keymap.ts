@@ -250,6 +250,39 @@ export const DEFAULT_ACTIONS: KeymapAction[] = [
     defaultKey: 'Ctrl+Shift+.',
     allowInInput: true,
   },
+  {
+    id: 'format.bulletList',
+    name: 'Bullet List',
+    category: 'Writing & Formatting',
+    description: 'Format current paragraph as bullet list item',
+    defaultKey: 'Ctrl+Shift+8',
+    allowInInput: true,
+  },
+  {
+    id: 'format.orderedList',
+    name: 'Numbered List',
+    category: 'Writing & Formatting',
+    description: 'Format current paragraph as numbered list item',
+    defaultKey: 'Ctrl+Shift+7',
+    allowInInput: true,
+  },
+  {
+    id: 'format.findInScene',
+    name: 'Find in Active Scene...',
+    category: 'Writing & Formatting',
+    description: 'Open in-editor floating search & replace bar',
+    defaultKey: 'Ctrl+F',
+    aliases: ['Cmd+F'],
+    allowInInput: true,
+  },
+  {
+    id: 'editor.toggleSpellCheck',
+    name: 'Toggle Spell Check',
+    category: 'Writing & Formatting',
+    description: 'Toggle real-time spell check red squiggles on or off',
+    defaultKey: 'F7',
+    allowInInput: true,
+  },
 
   // 6. System & Keymap (IntelliJ style)
   {
@@ -268,6 +301,15 @@ export const DEFAULT_ACTIONS: KeymapAction[] = [
     description: 'Open Keymap dialog to inspect, search, and rebind shortcuts',
     defaultKey: 'Ctrl+Alt+K',
     aliases: ['Ctrl+,'],
+    allowInInput: true,
+  },
+  {
+    id: 'system.projectSearch',
+    name: 'Find & Replace in Manuscript...',
+    category: 'System',
+    description: 'Project-wide search and replace across scenes, chapters, and character renaming',
+    defaultKey: 'Ctrl+Shift+F',
+    aliases: ['Ctrl+F'],
     allowInInput: true,
   },
 ]

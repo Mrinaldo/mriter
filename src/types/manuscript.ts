@@ -74,6 +74,22 @@ export interface WorldItem {
 export type BookTheme = 'classic' | 'modern' | 'minimal' | 'fantasy' | 'romantic'
 export type TrimSize = '5x8' | '5.5x8.5' | '6x9' | 'a5'
 
+export type ProjectType = 'novel' | 'short-story' | 'article'
+
+export type EditorContentWidth = 'compact' | 'standard' | 'wide' | 'fluid'
+export type ParagraphStyle = 'indented' | 'block'
+export type EditorLineSpacing = 'tight' | 'normal' | 'relaxed' | 'double'
+export type EditorFontSizeScale = 'small' | 'standard' | 'medium' | 'large'
+
+export interface EditorLayoutPreferences {
+  contentWidth: EditorContentWidth
+  paragraphStyle: ParagraphStyle
+  lineSpacing: EditorLineSpacing
+  fontSizeScale: EditorFontSizeScale
+  showChapterSubtitle: boolean
+  textAlignment: 'left' | 'justify'
+}
+
 export interface ExportSettings {
   bookTheme: BookTheme
   trimSize: TrimSize
@@ -82,7 +98,7 @@ export interface ExportSettings {
   includeSceneDividers: boolean
   sceneDividerSymbol: string // e.g. "✦ ✦ ✦" or "* * *"
   includeChapterNumbers: boolean
-  chapterTitleStyle: 'num-and-title' | 'title-only' | 'num-only'
+  chapterTitleStyle: 'num-and-title' | 'title-only' | 'num-only' | 'none'
   fontSize: number
   lineSpacing: number
   authorHeader: string
@@ -93,6 +109,7 @@ export interface ExportSettings {
 export interface ManuscriptProject {
   id: string
   version: string
+  projectType?: ProjectType
   title: string
   subtitle?: string
   author: string
@@ -103,6 +120,7 @@ export interface ManuscriptProject {
   genre?: string
   description?: string
   targetWordCount: number
+  editorLayout?: Partial<EditorLayoutPreferences>
   frontMatter: FrontBackMatterItem[]
   parts: PartItem[]
   backMatter: FrontBackMatterItem[]

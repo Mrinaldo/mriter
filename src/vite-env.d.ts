@@ -21,5 +21,15 @@ interface Window {
     onMenuAction?: (callback: (action: string) => void) => (() => void) | void;
     platform?: string;
     onMainMessage: (callback: (message: string) => void) => void;
+    spellcheck?: {
+      toggle: (enabled: boolean) => Promise<boolean>;
+      getState: () => Promise<{ enabled: boolean; languages: string[] }>;
+      setLanguages: (languages: string[]) => Promise<boolean>;
+      getAvailableLanguages: () => Promise<string[]>;
+      addToDictionary: (word: string) => Promise<boolean>;
+      getCustomWords: () => Promise<string[]>;
+      onToggled?: (callback: (enabled: boolean) => void) => (() => void) | void;
+      onLanguageChanged?: (callback: (lang: string) => void) => (() => void) | void;
+    };
   };
 }

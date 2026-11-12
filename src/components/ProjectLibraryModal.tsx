@@ -25,6 +25,8 @@ import {
   SearchCheck,
   Heart,
   FileCheck,
+  Newspaper,
+  BookOpen,
 } from 'lucide-react'
 import { useManuscript } from '../context/ManuscriptContext'
 import { ManuscriptProject } from '../types/manuscript'
@@ -36,7 +38,7 @@ interface ProjectLibraryModalProps {
 }
 
 type ViewMode = 'grid' | 'list'
-type TemplateType = 'blank' | 'fantasy' | 'cyberpunk' | 'mystery' | 'romance'
+type TemplateType = 'blank' | 'fantasy' | 'cyberpunk' | 'mystery' | 'romance' | 'article' | 'short-story'
 type SortOption = 'recent' | 'title' | 'words' | 'progress'
 
 interface TemplateOption {
@@ -100,6 +102,26 @@ const TEMPLATES: TemplateOption[] = [
     description: 'Emotional beat sheet with dual POV structure and relationship conflict tracking.',
     highlights: ['Dual-POV chapter framework', 'Emotional conflict matrix', 'Archival romance premise'],
     defaultTarget: 70000,
+  },
+  {
+    id: 'article',
+    title: 'Article & Long-form Essay',
+    subtitle: 'The Architectural Future of Open Systems',
+    genre: 'Essay / Article',
+    icon: <Newspaper className="w-5 h-5 text-emerald-600" />,
+    description: 'Clean editorial canvas with modern block paragraphs, left-aligned headings, and reading metrics.',
+    highlights: ['Block paragraph spacing', 'No forced chapter numbers', 'Target 1,500 – 3,000 words'],
+    defaultTarget: 2500,
+  },
+  {
+    id: 'short-story',
+    title: 'Short Story & Fiction',
+    subtitle: 'The Clockmaker of Saint-Germain',
+    genre: 'Short Fiction',
+    icon: <BookOpen className="w-5 h-5 text-purple-600" />,
+    description: 'Standalone short fiction framework with scene break dividers, no chapter bloat, and standard submission format.',
+    highlights: ['Scene breaks (# or ✦)', 'Standard Shunn format ready', 'Target 3,000 – 7,500 words'],
+    defaultTarget: 5000,
   },
 ]
 
@@ -200,12 +222,31 @@ export const ProjectLibraryModal: React.FC<ProjectLibraryModalProps> = ({ isOpen
 
   // Handle create submission
   const handleConfirmCreate = () => {
+    let projectType: 'novel' | 'short-story' | 'article' = 'novel'
+    if (selectedTemplate === 'article') projectType = 'article'
+    else if (selectedTemplate === 'short-story') projectType = 'short-story'
+
+    const defaultTitle =
+      selectedTemplate === 'article'
+        ? 'Untitled Article'
+        : selectedTemplate === 'short-story'
+        ? 'Untitled Short Story'
+        : 'Untitled Novel'
+
+    const defaultWords =
+      selectedTemplate === 'article'
+        ? 2500
+        : selectedTemplate === 'short-story'
+        ? 5000
+        : 80000
+
     createProject(selectedTemplate, {
-      title: newTitle.trim() || 'Untitled Novel',
+      title: newTitle.trim() || defaultTitle,
       author: newAuthor.trim() || activeProject.author || 'Author',
-      genre: newGenre.trim() || 'Fiction',
-      targetWordCount: newTargetWords || 80000,
+      genre: newGenre.trim() || (selectedTemplate === 'article' ? 'Essay / Article' : 'Fiction'),
+      targetWordCount: newTargetWords || defaultWords,
       description: newDescription.trim(),
+      projectType,
     })
     setActiveTab('library')
     onClose()

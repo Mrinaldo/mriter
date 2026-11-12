@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react'
 import {
   ChevronDown,
+  ChevronUp,
   ChevronRight,
   Plus,
   Search,
@@ -10,6 +11,9 @@ import {
   Trash2,
   PanelLeftClose,
   X,
+  Pencil,
+  FileText,
+  Copy,
 } from 'lucide-react'
 import { useManuscript } from '../context/ManuscriptContext'
 import { SceneStatus } from '../types/manuscript'
@@ -32,6 +36,12 @@ export const Sidebar: React.FC<SidebarProps> = ({ onClose, width, onWidthChange 
     addChapter,
     addScene,
     deleteChapter,
+    deleteScene,
+    moveScene,
+    moveChapter,
+    duplicateScene,
+    updateChapterTitle,
+    openProjectSearch,
     totalWordCount,
   } = useManuscript()
 
@@ -42,6 +52,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ onClose, width, onWidthChange 
   const [collapsedChapters, setCollapsedChapters] = useState<Record<string, boolean>>({})
   const [showFrontMatter, setShowFrontMatter] = useState(true)
   const [showBackMatter, setShowBackMatter] = useState(true)
+
+  const [editingChapterId, setEditingChapterId] = useState<string | null>(null)
+  const [chapterTitleDraft, setChapterTitleDraft] = useState('')
 
   const searchInputRef = useRef<HTMLInputElement>(null)
 
@@ -188,12 +201,13 @@ export const Sidebar: React.FC<SidebarProps> = ({ onClose, width, onWidthChange 
           </div>
           {searchQuery && (
             <div className="flex items-center justify-between pt-1 px-1 text-[10px] text-muted-theme">
-              <span className="font-mono">Searching in scenes & lore...</span>
+              <span className="font-mono">Filtering binder...</span>
               <button
-                onClick={() => setSearchQuery('')}
-                className="text-accent hover:underline cursor-pointer"
+                onClick={() => openProjectSearch(searchQuery)}
+                className="text-accent hover:underline cursor-pointer flex items-center space-x-0.5"
+                title="Search and Replace across whole manuscript"
               >
-                Reset
+                <span>Search & Replace</span>
               </button>
             </div>
           )}
@@ -292,7 +306,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ onClose, width, onWidthChange 
                   {/* Chapters within Part */}
                   {!isPartCollapsed && (
                     <div className="space-y-0.5 pl-1">
-                      {part.chapters.map((chap) => {
+                      {part.chapters.map((chap, chapIndex) => {
                         const isChapCollapsed = collapsedChapters[chap.id]
                         const chapWordCount = chap.scenes.reduce((acc, s) => acc + (s.wordCount || 0), 0)
 
@@ -300,28 +314,93 @@ export const Sidebar: React.FC<SidebarProps> = ({ onClose, width, onWidthChange 
                           <div key={chap.id} className="group">
                             {/* Chapter Header */}
                             <div className="flex items-center justify-between px-1.5 py-0.5 rounded hover:bg-surface transition-colors">
-                              <button
-                                onClick={() => toggleChapter(chap.id)}
-                                className="flex items-center space-x-1.5 flex-1 min-w-0 text-left"
-                              >
-                                {isChapCollapsed ? (
-                                  <ChevronRight className="w-3 h-3 text-faint shrink-0" />
-                                ) : (
-                                  <ChevronDown className="w-3 h-3 text-faint shrink-0" />
-                                )}
-                                <span className="text-xs font-medium text-main truncate">
-                                  {chap.title}
-                                </span>
-                              </button>
+                              {editingChapterId === chap.id ? (
+                                <input
+                                  type="text"
+                                  value={chapterTitleDraft}
+                                  onChange={(e) => setChapterTitleDraft(e.target.value)}
+                                  onBlur={() => {
+                                    if (chapterTitleDraft.trim()) {
+                                      updateChapterTitle(chap.id, chapterTitleDraft.trim())
+                                    }
+                                    setEditingChapterId(null)
+                                  }}
+                                  onKeyDown={(e) => {
+                                    if (e.key === 'Enter') {
+                                      if (chapterTitleDraft.trim()) {
+                                        updateChapterTitle(chap.id, chapterTitleDraft.trim())
+                                      }
+                                      setEditingChapterId(null)
+                                    } else if (e.key === 'Escape') {
+                                      setEditingChapterId(null)
+                                    }
+                                  }}
+                                  autoFocus
+                                  className="flex-1 text-xs font-medium text-main bg-surface px-1.5 py-0.5 rounded border border-accent outline-none"
+                                />
+                              ) : (
+                                <button
+                                  onClick={() => toggleChapter(chap.id)}
+                                  onDoubleClick={(e) => {
+                                    e.stopPropagation()
+                                    setEditingChapterId(chap.id)
+                                    setChapterTitleDraft(chap.title)
+                                  }}
+                                  className="flex items-center space-x-1.5 flex-1 min-w-0 text-left cursor-pointer"
+                                  title="Click to toggle, double click to rename"
+                                >
+                                  {isChapCollapsed ? (
+                                    <ChevronRight className="w-3 h-3 text-faint shrink-0" />
+                                  ) : (
+                                    <ChevronDown className="w-3 h-3 text-faint shrink-0" />
+                                  )}
+                                  <span className="text-xs font-medium text-main truncate">
+                                    {chap.title || '(Untitled Chapter)'}
+                                  </span>
+                                </button>
+                              )}
 
-                              <div className="flex items-center space-x-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <div className="flex items-center space-x-0.5 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
                                 <span className="text-[10px] text-faint font-mono mr-1">
                                   {chapWordCount}w
                                 </span>
                                 <button
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    moveChapter(chap.id, 'up')
+                                  }}
+                                  disabled={chapIndex === 0}
+                                  title="Move Chapter Up"
+                                  className="p-0.5 text-muted-theme hover:text-main disabled:opacity-20 disabled:hover:text-muted-theme rounded cursor-pointer"
+                                >
+                                  <ChevronUp className="w-3 h-3" />
+                                </button>
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    moveChapter(chap.id, 'down')
+                                  }}
+                                  disabled={chapIndex === part.chapters.length - 1}
+                                  title="Move Chapter Down"
+                                  className="p-0.5 text-muted-theme hover:text-main disabled:opacity-20 disabled:hover:text-muted-theme rounded cursor-pointer"
+                                >
+                                  <ChevronDown className="w-3 h-3" />
+                                </button>
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    setEditingChapterId(chap.id)
+                                    setChapterTitleDraft(chap.title)
+                                  }}
+                                  title="Rename Chapter"
+                                  className="p-0.5 text-muted-theme hover:text-main rounded cursor-pointer"
+                                >
+                                  <Pencil className="w-3 h-3" />
+                                </button>
+                                <button
                                   onClick={() => addScene(chap.id)}
                                   title="Add Scene"
-                                  className="p-0.5 text-muted-theme hover:text-main rounded"
+                                  className="p-0.5 text-muted-theme hover:text-main rounded cursor-pointer"
                                 >
                                   <Plus className="w-3 h-3" />
                                 </button>
@@ -332,7 +411,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ onClose, width, onWidthChange 
                                     }
                                   }}
                                   title="Delete Chapter"
-                                  className="p-0.5 text-faint hover:text-red-500 rounded"
+                                  className="p-0.5 text-faint hover:text-red-500 rounded cursor-pointer"
                                 >
                                   <Trash2 className="w-3 h-3" />
                                 </button>
@@ -342,7 +421,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ onClose, width, onWidthChange 
                             {/* Scenes */}
                             {!isChapCollapsed && (
                               <div className="pl-3.5 space-y-0.5 mt-0.5 border-l border-subtle ml-2">
-                                {chap.scenes.map((scene) => {
+                                {chap.scenes.map((scene, sceneIndex) => {
                                   const isSelected = activeSceneId === scene.id
                                   const sceneText = scene.plainText || stripHtml(scene.content || '')
                                   const matchesSearch =
@@ -354,20 +433,20 @@ export const Sidebar: React.FC<SidebarProps> = ({ onClose, width, onWidthChange 
                                   if (!matchesSearch) return null
 
                                   return (
-                                    <button
+                                    <div
                                       key={scene.id}
                                       onClick={() => {
                                         setActiveSceneId(scene.id)
                                         setActiveSectionId(null)
                                         setActiveView('editor')
                                       }}
-                                      className={`w-full group/scene flex items-center justify-between px-2 py-1 rounded text-xs transition-colors ${
+                                      className={`w-full group/scene flex items-center justify-between px-2 py-1 rounded text-xs transition-colors cursor-pointer ${
                                         isSelected
                                           ? 'bg-accent-soft text-main font-medium shadow-2xs'
                                           : 'text-muted-theme hover:text-main hover:bg-surface'
                                       }`}
                                     >
-                                      <div className="flex items-center space-x-2 min-w-0">
+                                      <div className="flex items-center space-x-2 min-w-0 flex-1">
                                         <span
                                           className={`w-1.5 h-1.5 rounded-full shrink-0 ${getStatusColor(
                                             scene.status
@@ -377,10 +456,81 @@ export const Sidebar: React.FC<SidebarProps> = ({ onClose, width, onWidthChange 
                                         <span className="truncate text-left">{scene.title}</span>
                                       </div>
 
-                                      <span className="text-[10px] text-faint font-mono shrink-0">
-                                        {scene.wordCount || 0}
-                                      </span>
-                                    </button>
+                                      <div className="flex items-center space-x-0.5 shrink-0 ml-1">
+                                        {/* Word count visible by default, hidden on hover */}
+                                        <span className="text-[10px] text-faint font-mono group-hover/scene:hidden">
+                                          {scene.wordCount || 0}
+                                        </span>
+
+                                        {/* Action icons revealed on hover */}
+                                        <div className="hidden group-hover/scene:flex items-center space-x-0.5">
+                                          <button
+                                            type="button"
+                                            onClick={(e) => {
+                                              e.stopPropagation()
+                                              moveScene(scene.id, 'up')
+                                            }}
+                                            disabled={sceneIndex === 0}
+                                            title="Move Scene Up"
+                                            className="p-0.5 text-muted-theme hover:text-main disabled:opacity-20 disabled:hover:text-muted-theme rounded cursor-pointer"
+                                          >
+                                            <ChevronUp className="w-2.5 h-2.5" />
+                                          </button>
+                                          <button
+                                            type="button"
+                                            onClick={(e) => {
+                                              e.stopPropagation()
+                                              moveScene(scene.id, 'down')
+                                            }}
+                                            disabled={sceneIndex === chap.scenes.length - 1}
+                                            title="Move Scene Down"
+                                            className="p-0.5 text-muted-theme hover:text-main disabled:opacity-20 disabled:hover:text-muted-theme rounded cursor-pointer"
+                                          >
+                                            <ChevronDown className="w-2.5 h-2.5" />
+                                          </button>
+                                          <button
+                                            type="button"
+                                            onClick={(e) => {
+                                              e.stopPropagation()
+                                              duplicateScene(scene.id)
+                                            }}
+                                            title="Duplicate Scene"
+                                            className="p-0.5 text-muted-theme hover:text-main rounded cursor-pointer"
+                                          >
+                                            <Copy className="w-2.5 h-2.5" />
+                                          </button>
+                                          <button
+                                            type="button"
+                                            onClick={(e) => {
+                                              e.stopPropagation()
+                                              if (confirm(`Delete scene "${scene.title}"?`)) {
+                                                if (activeSceneId === scene.id) {
+                                                  let nextSceneId: string | null = null
+                                                  for (const p of project.parts) {
+                                                    for (const c of p.chapters) {
+                                                      for (const s of c.scenes) {
+                                                        if (s.id !== scene.id) {
+                                                          nextSceneId = s.id
+                                                          break
+                                                        }
+                                                      }
+                                                      if (nextSceneId) break
+                                                    }
+                                                    if (nextSceneId) break
+                                                  }
+                                                  setActiveSceneId(nextSceneId)
+                                                }
+                                                deleteScene(scene.id)
+                                              }
+                                            }}
+                                            title="Delete Scene"
+                                            className="p-0.5 text-faint hover:text-red-500 rounded cursor-pointer"
+                                          >
+                                            <Trash2 className="w-2.5 h-2.5" />
+                                          </button>
+                                        </div>
+                                      </div>
+                                    </div>
                                   )
                                 })}
                               </div>

@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, dialog, Menu, MenuItemConstructorOptions } from 'electron'
+import { app, BrowserWindow, ipcMain, dialog, Menu, MenuItem, MenuItemConstructorOptions } from 'electron'
 import path from 'node:path'
 import fs from 'node:fs/promises'
 
@@ -95,6 +95,14 @@ function setupApplicationMenu() {
         { role: 'pasteAndMatchStyle' as const },
         { role: 'delete' as const },
         { role: 'selectAll' as const },
+        { type: 'separator' as const },
+        {
+          label: 'Check Spelling While Typing',
+          accelerator: 'F7',
+          click: () => {
+            win?.webContents.send('menu:action', 'editor.toggleSpellCheck')
+          },
+        },
       ],
     },
     {
@@ -173,6 +181,120 @@ function setupApplicationMenu() {
   Menu.setApplicationMenu(menu)
 }
 
+function setupContextMenu(window: BrowserWindow) {
+  window.webContents.on('context-menu', (_event, params) => {
+    const menu = new Menu()
+
+    // 1. Spellcheck suggestions (when right clicking on a misspelled word)
+    if (params.misspelledWord) {
+      if (params.dictionarySuggestions && params.dictionarySuggestions.length > 0) {
+        for (const suggestion of params.dictionarySuggestions.slice(0, 6)) {
+          menu.append(
+            new MenuItem({
+              label: suggestion,
+              click: () => window.webContents.replaceMisspelling(suggestion),
+            })
+          )
+        }
+      } else {
+        menu.append(
+          new MenuItem({
+            label: 'No Spelling Suggestions',
+            enabled: false,
+          })
+        )
+      }
+
+      menu.append(new MenuItem({ type: 'separator' }))
+      menu.append(
+        new MenuItem({
+          label: `Add "${params.misspelledWord}" to Dictionary`,
+          click: () => {
+            window.webContents.session.addWordToSpellCheckerDictionary(params.misspelledWord)
+          },
+        })
+      )
+      menu.append(new MenuItem({ type: 'separator' }))
+    }
+
+    // 2. Standard editing options when in an editable context
+    if (params.isEditable) {
+      menu.append(new MenuItem({ role: 'undo' }))
+      menu.append(new MenuItem({ role: 'redo' }))
+      menu.append(new MenuItem({ type: 'separator' }))
+      menu.append(new MenuItem({ role: 'cut' }))
+      menu.append(new MenuItem({ role: 'copy' }))
+      menu.append(new MenuItem({ role: 'paste' }))
+      menu.append(new MenuItem({ role: 'selectAll' }))
+      menu.append(new MenuItem({ type: 'separator' }))
+
+      // Spelling submenu
+      const isSpellcheckEnabled = window.webContents.session.isSpellCheckerEnabled()
+      const currentLanguages = window.webContents.session.getSpellCheckerLanguages() || ['en-US']
+      const standardLanguages = [
+        { code: 'en-US', label: 'English (United States)' },
+        { code: 'en-GB', label: 'English (United Kingdom)' },
+        { code: 'en-CA', label: 'English (Canada)' },
+        { code: 'en-AU', label: 'English (Australia)' },
+      ]
+
+      const spellingSubmenu = new Menu()
+      spellingSubmenu.append(
+        new MenuItem({
+          label: 'Check Spelling While Typing',
+          type: 'checkbox',
+          checked: isSpellcheckEnabled,
+          click: (item) => {
+            window.webContents.session.setSpellCheckerEnabled(item.checked)
+            window.webContents.send('spellcheck:toggled', item.checked)
+          },
+        })
+      )
+      spellingSubmenu.append(new MenuItem({ type: 'separator' }))
+
+      for (const lang of standardLanguages) {
+        spellingSubmenu.append(
+          new MenuItem({
+            label: lang.label,
+            type: 'checkbox',
+            checked: currentLanguages.includes(lang.code),
+            click: () => {
+              window.webContents.session.setSpellCheckerLanguages([lang.code])
+              window.webContents.send('spellcheck:languageChanged', lang.code)
+            },
+          })
+        )
+      }
+
+      menu.append(
+        new MenuItem({
+          label: 'Spelling & Grammar',
+          submenu: spellingSubmenu,
+        })
+      )
+    } else if (params.selectionText && params.selectionText.trim().length > 0) {
+      // Non-editable text selection
+      menu.append(new MenuItem({ role: 'copy' }))
+      menu.append(new MenuItem({ role: 'selectAll' }))
+      menu.append(new MenuItem({ type: 'separator' }))
+      const trimmed = params.selectionText.trim()
+      const snippet = trimmed.slice(0, 24)
+      menu.append(
+        new MenuItem({
+          label: `Search Manuscript for "${snippet}${trimmed.length > 24 ? '...' : ''}"`,
+          click: () => {
+            window.webContents.send('menu:action', 'system.projectSearch')
+          },
+        })
+      )
+    }
+
+    if (menu.items.length > 0) {
+      menu.popup({ window })
+    }
+  })
+}
+
 function createWindow() {
   win = new BrowserWindow({
     width: 1300,
@@ -190,9 +312,12 @@ function createWindow() {
       preload: path.join(__dirname, 'preload.js'),
       nodeIntegration: false,
       contextIsolation: true,
+      spellcheck: true,
     },
     icon: path.join(process.env.VITE_PUBLIC || RENDERER_DIST, 'icon.png'),
   })
+
+  setupContextMenu(win)
 
   // Window state notification for renderer custom controls and layout
   win.on('maximize', () => {
@@ -326,5 +451,45 @@ app.whenReady().then(() => {
 
   ipcMain.handle('window:isFullScreen', () => {
     return win?.isFullScreen() ?? false
+  })
+
+  // Spellchecker IPC handlers
+  ipcMain.handle('spellcheck:toggle', (_, enabled: boolean) => {
+    if (!win) return false
+    win.webContents.session.setSpellCheckerEnabled(enabled)
+    win.webContents.send('spellcheck:toggled', enabled)
+    return win.webContents.session.isSpellCheckerEnabled()
+  })
+
+  ipcMain.handle('spellcheck:getState', () => {
+    if (!win) return { enabled: true, languages: ['en-US'] }
+    return {
+      enabled: win.webContents.session.isSpellCheckerEnabled(),
+      languages: win.webContents.session.getSpellCheckerLanguages(),
+    }
+  })
+
+  ipcMain.handle('spellcheck:setLanguages', (_, languages: string[]) => {
+    if (!win) return false
+    win.webContents.session.setSpellCheckerLanguages(languages)
+    if (languages.length > 0) {
+      win.webContents.send('spellcheck:languageChanged', languages[0])
+    }
+    return true
+  })
+
+  ipcMain.handle('spellcheck:getAvailableLanguages', () => {
+    if (!win) return ['en-US', 'en-GB', 'en-CA', 'en-AU']
+    return win.webContents.session.availableSpellCheckerLanguages || ['en-US', 'en-GB', 'en-CA', 'en-AU']
+  })
+
+  ipcMain.handle('spellcheck:addToDictionary', (_, word: string) => {
+    if (!win || !word) return false
+    return win.webContents.session.addWordToSpellCheckerDictionary(word)
+  })
+
+  ipcMain.handle('spellcheck:getCustomWords', async () => {
+    if (!win) return []
+    return await win.webContents.session.listWordsInSpellCheckerDictionary()
   })
 })

@@ -8,6 +8,7 @@ import {
   Crosshair,
   Flame,
   Compass,
+  Search,
 } from 'lucide-react'
 import { useManuscript } from '../context/ManuscriptContext'
 import { CharacterItem, WorldItem } from '../types/manuscript'
@@ -21,6 +22,9 @@ export const CharacterWorldBible: React.FC = () => {
     addWorldItem,
     updateWorldItem,
     deleteWorldItem,
+    renameCharacterAcrossProject,
+    openProjectSearch,
+    spellCheckEnabled,
   } = useManuscript()
 
   const [activeTab, setActiveTab] = useState<'characters' | 'world'>('characters')
@@ -90,6 +94,11 @@ export const CharacterWorldBible: React.FC = () => {
       .filter(Boolean)
 
     if (editingChar) {
+      const oldName = editingChar.name.trim()
+      const newName = charName.trim()
+      if (oldName !== newName) {
+        renameCharacterAcrossProject(editingChar.id, newName)
+      }
       updateCharacter(editingChar.id, {
         name: charName,
         role: charRole,
@@ -276,8 +285,15 @@ export const CharacterWorldBible: React.FC = () => {
 
                     <div className="flex items-center space-x-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
                       <button
+                        onClick={() => openProjectSearch(char.name)}
+                        className="p-1 text-muted-theme hover:text-main rounded cursor-pointer"
+                        title={`Find all mentions of "${char.name}" in manuscript`}
+                      >
+                        <Search className="w-3 h-3" />
+                      </button>
+                      <button
                         onClick={() => openEditCharacter(char)}
-                        className="p-1 text-muted-theme hover:text-main rounded"
+                        className="p-1 text-muted-theme hover:text-main rounded cursor-pointer"
                         title="Edit Character"
                       >
                         <Edit2 className="w-3 h-3" />
@@ -288,7 +304,7 @@ export const CharacterWorldBible: React.FC = () => {
                             deleteCharacter(char.id)
                           }
                         }}
-                        className="p-1 text-faint hover:text-red-500 rounded"
+                        className="p-1 text-faint hover:text-red-500 rounded cursor-pointer"
                         title="Delete Character"
                       >
                         <Trash2 className="w-3 h-3" />
@@ -546,6 +562,7 @@ export const CharacterWorldBible: React.FC = () => {
                 </label>
                 <textarea
                   value={charBio}
+                  spellCheck={spellCheckEnabled}
                   onChange={(e) => setCharBio(e.target.value)}
                   placeholder="History, appearance, voice..."
                   rows={2}
@@ -616,6 +633,7 @@ export const CharacterWorldBible: React.FC = () => {
                 <label className="text-[10px] font-medium text-muted-theme block mb-1">Description</label>
                 <textarea
                   value={worldDescription}
+                  spellCheck={spellCheckEnabled}
                   onChange={(e) => setWorldDescription(e.target.value)}
                   placeholder="Atmosphere, significance, architecture..."
                   rows={2}
@@ -640,6 +658,7 @@ export const CharacterWorldBible: React.FC = () => {
                 <label className="text-[10px] font-medium text-muted-theme block mb-1">Author Notes</label>
                 <textarea
                   value={worldNotes}
+                  spellCheck={spellCheckEnabled}
                   onChange={(e) => setWorldNotes(e.target.value)}
                   placeholder="Plot relevance, secrets to reveal later..."
                   rows={2}

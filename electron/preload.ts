@@ -32,4 +32,22 @@ contextBridge.exposeInMainWorld('electronAPI', {
   onMainMessage: (callback: (message: string) => void) => {
     ipcRenderer.on('main-process-message', (_event, value) => callback(value))
   },
+  spellcheck: {
+    toggle: (enabled: boolean) => ipcRenderer.invoke('spellcheck:toggle', enabled),
+    getState: () => ipcRenderer.invoke('spellcheck:getState'),
+    setLanguages: (languages: string[]) => ipcRenderer.invoke('spellcheck:setLanguages', languages),
+    getAvailableLanguages: () => ipcRenderer.invoke('spellcheck:getAvailableLanguages'),
+    addToDictionary: (word: string) => ipcRenderer.invoke('spellcheck:addToDictionary', word),
+    getCustomWords: () => ipcRenderer.invoke('spellcheck:getCustomWords'),
+    onToggled: (callback: (enabled: boolean) => void) => {
+      const subscription = (_event: any, value: boolean) => callback(value)
+      ipcRenderer.on('spellcheck:toggled', subscription)
+      return () => ipcRenderer.removeListener('spellcheck:toggled', subscription)
+    },
+    onLanguageChanged: (callback: (lang: string) => void) => {
+      const subscription = (_event: any, value: string) => callback(value)
+      ipcRenderer.on('spellcheck:languageChanged', subscription)
+      return () => ipcRenderer.removeListener('spellcheck:languageChanged', subscription)
+    },
+  },
 })

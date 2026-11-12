@@ -11,6 +11,7 @@ import { PublishStudio } from './components/PublishStudio'
 import { ProjectLibraryModal } from './components/ProjectLibraryModal'
 import { ActionPaletteModal } from './components/ActionPaletteModal'
 import { KeymapSettingsModal } from './components/KeymapSettingsModal'
+import { ProjectSearchModal } from './components/ProjectSearchModal'
 import { SceneStatus } from './types/manuscript'
 import { ChevronRight, PanelLeftOpen, Search } from 'lucide-react'
 
@@ -39,6 +40,8 @@ const MainLayout: React.FC = () => {
     addScene,
     addChapter,
     updateSceneMetadata,
+    openProjectSearch,
+    toggleSpellCheck,
   } = useManuscript()
 
   const { registerActionHandler } = useKeymap()
@@ -229,6 +232,7 @@ const MainLayout: React.FC = () => {
     unsubs.push(registerActionHandler('project.save', () => saveProjectFile()))
     unsubs.push(registerActionHandler('project.open', () => openProjectFile()))
     unsubs.push(registerActionHandler('project.new', () => newProject()))
+    unsubs.push(registerActionHandler('system.projectSearch', () => openProjectSearch()))
 
     // 5. In-Editor Formatting
     unsubs.push(
@@ -273,12 +277,35 @@ const MainLayout: React.FC = () => {
         )
       })
     )
+    unsubs.push(
+      registerActionHandler('format.bulletList', () => {
+        window.dispatchEvent(
+          new CustomEvent('mriter-editor-command', { detail: { command: 'bulletList' } })
+        )
+      })
+    )
+    unsubs.push(
+      registerActionHandler('format.orderedList', () => {
+        window.dispatchEvent(
+          new CustomEvent('mriter-editor-command', { detail: { command: 'orderedList' } })
+        )
+      })
+    )
+    unsubs.push(
+      registerActionHandler('format.findInScene', () => {
+        window.dispatchEvent(
+          new CustomEvent('mriter-editor-command', { detail: { command: 'find' } })
+        )
+      })
+    )
+    unsubs.push(registerActionHandler('editor.toggleSpellCheck', toggleSpellCheck))
 
     return () => {
       unsubs.forEach((unsub) => unsub())
     }
   }, [
     registerActionHandler,
+    toggleSpellCheck,
     setActiveView,
     focusMode,
     setFocusMode,
@@ -391,6 +418,9 @@ const MainLayout: React.FC = () => {
 
       {/* Find Action Command Palette (IntelliJ Style: Ctrl+Shift+A) */}
       <ActionPaletteModal />
+
+      {/* Global Project Search & Replace & Character Renaming Modal */}
+      <ProjectSearchModal />
 
       {/* Keyboard Shortcuts Keymap Configuration Dialog (IntelliJ Style) */}
       <KeymapSettingsModal />

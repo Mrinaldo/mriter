@@ -8,6 +8,11 @@ import {
   CharacterItem,
   WorldItem,
   ActiveView,
+  ProjectType,
+  EditorContentWidth,
+  ParagraphStyle,
+  EditorLineSpacing,
+  EditorFontSizeScale,
 } from '../types/manuscript'
 import { createDefaultProject } from '../utils/initialProject'
 import { createSampleProject2 } from '../utils/sampleProject2'
@@ -78,13 +83,14 @@ interface ManuscriptContextType {
   projectsLibrary: ManuscriptProject[]
   switchProject: (projectId: string) => void
   createProject: (
-    template?: 'blank' | 'fantasy' | 'cyberpunk' | 'mystery' | 'romance',
+    template?: 'blank' | 'fantasy' | 'cyberpunk' | 'mystery' | 'romance' | 'article' | 'short-story',
     customMetadata?: {
       title?: string
       author?: string
       genre?: string
       targetWordCount?: number
       description?: string
+      projectType?: ProjectType
     }
   ) => void
   updateProjectInLibrary: (projectId: string, updates: Partial<ManuscriptProject>) => void
@@ -107,6 +113,43 @@ interface ManuscriptContextType {
   setTypewriterMode: (val: boolean) => void
   focusMode: boolean
   setFocusMode: (val: boolean) => void
+
+  // Editor Layout & Freedom
+  contentWidth: EditorContentWidth
+  setContentWidth: (val: EditorContentWidth) => void
+  paragraphStyle: ParagraphStyle
+  setParagraphStyle: (val: ParagraphStyle) => void
+  lineSpacing: EditorLineSpacing
+  setLineSpacing: (val: EditorLineSpacing) => void
+  fontSizeScale: EditorFontSizeScale
+  setFontSizeScale: (val: EditorFontSizeScale) => void
+  showChapterSubtitle: boolean
+  setShowChapterSubtitle: (val: boolean) => void
+  textAlignment: 'left' | 'justify'
+  setTextAlignment: (val: 'left' | 'justify') => void
+
+  // Real-Time Spell Check
+  spellCheckEnabled: boolean
+  setSpellCheckEnabled: (enabled: boolean) => void
+  toggleSpellCheck: () => void
+  spellCheckLanguage: string
+  setSpellCheckLanguage: (lang: string) => void
+
+  // Search & Global Replace
+  isProjectSearchOpen: boolean
+  setIsProjectSearchOpen: (open: boolean) => void
+  openProjectSearch: (initialQuery?: string) => void
+  projectSearchInitialQuery: string
+  batchReplaceAcrossManuscript: (options: {
+    searchTerm: string
+    replaceTerm: string
+    caseSensitive?: boolean
+    wholeWord?: boolean
+    scope?: 'activeScene' | 'activeChapter' | 'manuscript'
+  }) => { replacedOccurrences: number; affectedScenes: number }
+  renameCharacterAcrossProject: (characterId: string, newName: string) => { replacedCount: number }
+  updateChapterTitle: (chapterId: string, title: string) => void
+
   isDirty: boolean
   lastSavedAt: string | null
   currentFilePath: string | null
@@ -126,6 +169,12 @@ interface ManuscriptContextType {
   addScene: (chapterId: string, title?: string) => void
   deleteScene: (sceneId: string) => void
   deleteChapter: (chapterId: string) => void
+  moveScene: (sceneId: string, direction: 'up' | 'down') => void
+  moveChapter: (chapterId: string, direction: 'up' | 'down') => void
+  duplicateScene: (sceneId: string) => void
+  replaceSelectedOccurrences: (
+    replacementsByScene: Record<string, { start: number; length: number; replacement: string }[]>
+  ) => number
   addCharacter: (character: CharacterItem) => void
   updateCharacter: (id: string, updates: Partial<CharacterItem>) => void
   deleteCharacter: (id: string) => void
@@ -152,6 +201,14 @@ const LIBRARY_STORAGE_KEY = 'mriter_projects_library'
 const ACTIVE_ID_KEY = 'mriter_active_project_id'
 const THEME_STORAGE_KEY = 'mriter_editor_theme'
 const FONT_STORAGE_KEY = 'mriter_editor_font'
+const CONTENT_WIDTH_KEY = 'mriter_editor_content_width'
+const PARAGRAPH_STYLE_KEY = 'mriter_editor_paragraph_style'
+const LINE_SPACING_KEY = 'mriter_editor_line_spacing'
+const FONT_SIZE_SCALE_KEY = 'mriter_editor_font_size_scale'
+const SHOW_CHAPTER_SUBTITLE_KEY = 'mriter_editor_show_chapter_subtitle'
+const TEXT_ALIGN_KEY = 'mriter_editor_text_align'
+const SPELLCHECK_ENABLED_KEY = 'mriter_spellcheck_enabled'
+const SPELLCHECK_LANG_KEY = 'mriter_spellcheck_language'
 
 export const ManuscriptProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   // 1. Projects Library State
@@ -227,6 +284,178 @@ export const ManuscriptProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const [isDirty, setIsDirty] = useState<boolean>(false)
   const [lastSavedAt, setLastSavedAt] = useState<string | null>(null)
   const [currentFilePath, setCurrentFilePath] = useState<string | null>(null)
+
+  // Editor Layout & Freedom States
+  const [contentWidth, setContentWidthState] = useState<EditorContentWidth>(() => {
+    return (localStorage.getItem(CONTENT_WIDTH_KEY) as EditorContentWidth) || 'standard'
+  })
+  const [paragraphStyle, setParagraphStyleState] = useState<ParagraphStyle>(() => {
+    return (localStorage.getItem(PARAGRAPH_STYLE_KEY) as ParagraphStyle) || 'indented'
+  })
+  const [lineSpacing, setLineSpacingState] = useState<EditorLineSpacing>(() => {
+    return (localStorage.getItem(LINE_SPACING_KEY) as EditorLineSpacing) || 'normal'
+  })
+  const [fontSizeScale, setFontSizeScaleState] = useState<EditorFontSizeScale>(() => {
+    return (localStorage.getItem(FONT_SIZE_SCALE_KEY) as EditorFontSizeScale) || 'standard'
+  })
+  const [showChapterSubtitle, setShowChapterSubtitleState] = useState<boolean>(() => {
+    const saved = localStorage.getItem(SHOW_CHAPTER_SUBTITLE_KEY)
+    return saved !== null ? saved === 'true' : true
+  })
+  const [textAlignment, setTextAlignmentState] = useState<'left' | 'justify'>(() => {
+    return (localStorage.getItem(TEXT_ALIGN_KEY) as 'left' | 'justify') || 'left'
+  })
+
+  // Real-Time Spell Check States
+  const [spellCheckEnabled, setSpellCheckEnabledState] = useState<boolean>(() => {
+    const saved = localStorage.getItem(SPELLCHECK_ENABLED_KEY)
+    return saved !== null ? saved === 'true' : true
+  })
+  const [spellCheckLanguage, setSpellCheckLanguageState] = useState<string>(() => {
+    return localStorage.getItem(SPELLCHECK_LANG_KEY) || 'en-US'
+  })
+
+  // Global Project Search & Replace Modal State
+  const [isProjectSearchOpen, setIsProjectSearchOpen] = useState(false)
+  const [projectSearchInitialQuery, setProjectSearchInitialQuery] = useState('')
+
+  const openProjectSearch = useCallback((initialQuery?: string) => {
+    if (initialQuery !== undefined) {
+      setProjectSearchInitialQuery(initialQuery)
+    }
+    setIsProjectSearchOpen(true)
+  }, [])
+
+  const setContentWidth = useCallback((val: EditorContentWidth) => {
+    setContentWidthState(val)
+    localStorage.setItem(CONTENT_WIDTH_KEY, val)
+    setProject((prev) => ({
+      ...prev,
+      editorLayout: { ...prev.editorLayout, contentWidth: val },
+    }))
+    setIsDirty(true)
+  }, [])
+
+  const setParagraphStyle = useCallback((val: ParagraphStyle) => {
+    setParagraphStyleState(val)
+    localStorage.setItem(PARAGRAPH_STYLE_KEY, val)
+    setProject((prev) => ({
+      ...prev,
+      editorLayout: { ...prev.editorLayout, paragraphStyle: val },
+    }))
+    setIsDirty(true)
+  }, [])
+
+  const setLineSpacing = useCallback((val: EditorLineSpacing) => {
+    setLineSpacingState(val)
+    localStorage.setItem(LINE_SPACING_KEY, val)
+    setProject((prev) => ({
+      ...prev,
+      editorLayout: { ...prev.editorLayout, lineSpacing: val },
+    }))
+    setIsDirty(true)
+  }, [])
+
+  const setFontSizeScale = useCallback((val: EditorFontSizeScale) => {
+    setFontSizeScaleState(val)
+    localStorage.setItem(FONT_SIZE_SCALE_KEY, val)
+    setProject((prev) => ({
+      ...prev,
+      editorLayout: { ...prev.editorLayout, fontSizeScale: val },
+    }))
+    setIsDirty(true)
+  }, [])
+
+  const setShowChapterSubtitle = useCallback((val: boolean) => {
+    setShowChapterSubtitleState(val)
+    localStorage.setItem(SHOW_CHAPTER_SUBTITLE_KEY, val ? 'true' : 'false')
+    setProject((prev) => ({
+      ...prev,
+      editorLayout: { ...prev.editorLayout, showChapterSubtitle: val },
+    }))
+    setIsDirty(true)
+  }, [])
+
+  const setTextAlignment = useCallback((val: 'left' | 'justify') => {
+    setTextAlignmentState(val)
+    localStorage.setItem(TEXT_ALIGN_KEY, val)
+    setProject((prev) => ({
+      ...prev,
+      editorLayout: { ...prev.editorLayout, textAlignment: val },
+    }))
+    setIsDirty(true)
+  }, [])
+
+  const setSpellCheckEnabled = useCallback((enabled: boolean) => {
+    setSpellCheckEnabledState(enabled)
+    localStorage.setItem(SPELLCHECK_ENABLED_KEY, String(enabled))
+    if (window.electronAPI?.spellcheck?.toggle) {
+      window.electronAPI.spellcheck.toggle(enabled).catch(() => {})
+    }
+  }, [])
+
+  const toggleSpellCheck = useCallback(() => {
+    setSpellCheckEnabledState((prev) => {
+      const next = !prev
+      localStorage.setItem(SPELLCHECK_ENABLED_KEY, String(next))
+      if (window.electronAPI?.spellcheck?.toggle) {
+        window.electronAPI.spellcheck.toggle(next).catch(() => {})
+      }
+      return next
+    })
+  }, [])
+
+  const setSpellCheckLanguage = useCallback((lang: string) => {
+    setSpellCheckLanguageState(lang)
+    localStorage.setItem(SPELLCHECK_LANG_KEY, lang)
+    if (window.electronAPI?.spellcheck?.setLanguages) {
+      window.electronAPI.spellcheck.setLanguages([lang]).catch(() => {})
+    }
+  }, [])
+
+  // Synchronize spell check settings with Electron native spellchecker
+  useEffect(() => {
+    if (window.electronAPI?.spellcheck) {
+      window.electronAPI.spellcheck.toggle(spellCheckEnabled).catch(() => {})
+      window.electronAPI.spellcheck.setLanguages([spellCheckLanguage]).catch(() => {})
+
+      const unsubToggle = window.electronAPI.spellcheck.onToggled?.((enabled: boolean) => {
+        setSpellCheckEnabledState(enabled)
+        localStorage.setItem(SPELLCHECK_ENABLED_KEY, String(enabled))
+      })
+
+      const unsubLang = window.electronAPI.spellcheck.onLanguageChanged?.((lang: string) => {
+        setSpellCheckLanguageState(lang)
+        localStorage.setItem(SPELLCHECK_LANG_KEY, lang)
+      })
+
+      return () => {
+        if (typeof unsubToggle === 'function') unsubToggle()
+        if (typeof unsubLang === 'function') unsubLang()
+      }
+    }
+  }, [])
+
+  // Sync project layout preferences whenever switched project changes
+  useEffect(() => {
+    if (project.editorLayout) {
+      if (project.editorLayout.contentWidth) setContentWidthState(project.editorLayout.contentWidth)
+      if (project.editorLayout.paragraphStyle) setParagraphStyleState(project.editorLayout.paragraphStyle)
+      if (project.editorLayout.lineSpacing) setLineSpacingState(project.editorLayout.lineSpacing)
+      if (project.editorLayout.fontSizeScale) setFontSizeScaleState(project.editorLayout.fontSizeScale)
+      if (project.editorLayout.showChapterSubtitle !== undefined) setShowChapterSubtitleState(project.editorLayout.showChapterSubtitle)
+      if (project.editorLayout.textAlignment) setTextAlignmentState(project.editorLayout.textAlignment)
+    } else {
+      // If project has no layout overrides, set defaults based on projectType
+      if (project.projectType === 'article') {
+        setParagraphStyleState('block')
+        setShowChapterSubtitleState(false)
+      } else if (project.projectType === 'short-story') {
+        setParagraphStyleState('indented')
+        setShowChapterSubtitleState(false)
+      }
+    }
+  }, [project.id, project.projectType])
 
   const [isModalOverlayActive, setIsModalOverlayActive] = useState<boolean>(false)
 
@@ -327,13 +556,14 @@ export const ManuscriptProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   // Create Project Action
   const createProject = useCallback(
     (
-      template: 'blank' | 'fantasy' | 'cyberpunk' | 'mystery' | 'romance' = 'blank',
+      template: 'blank' | 'fantasy' | 'cyberpunk' | 'mystery' | 'romance' | 'article' | 'short-story' = 'blank',
       customMetadata?: {
         title?: string
         author?: string
         genre?: string
         targetWordCount?: number
         description?: string
+        projectType?: ProjectType
       }
     ) => {
       const now = new Date().toISOString()
@@ -523,6 +753,138 @@ export const ManuscriptProvider: React.FC<{ children: React.ReactNode }> = ({ ch
             chapterTitleStyle: 'num-and-title',
             fontSize: 11,
             lineSpacing: 1.6,
+            authorHeader: customMetadata?.author || project.author || 'Author',
+            includeCoverPage: false,
+          },
+          createdAt: now,
+          updatedAt: now,
+        }
+      } else if (template === 'article') {
+        newProj = {
+          id: 'proj-' + Math.random().toString(36).substring(2, 9),
+          version: '1.0.0',
+          projectType: 'article',
+          title: customMetadata?.title || 'Untitled Article',
+          subtitle: 'An Essay on Technology and Culture',
+          author: customMetadata?.author || project.author || 'Author',
+          language: 'en',
+          genre: customMetadata?.genre || 'Essay / Article',
+          description: customMetadata?.description || 'Long-form editorial commentary, essay, or publication post.',
+          targetWordCount: customMetadata?.targetWordCount || 2500,
+          editorLayout: {
+            contentWidth: 'standard',
+            paragraphStyle: 'block',
+            lineSpacing: 'normal',
+            fontSizeScale: 'standard',
+            showChapterSubtitle: false,
+            textAlignment: 'left',
+          },
+          frontMatter: [],
+          parts: [
+            {
+              id: 'part-1',
+              title: 'Drafts',
+              chapters: [
+                {
+                  id: 'chap-1',
+                  title: '',
+                  scenes: [
+                    {
+                      id: 'scene-1',
+                      title: customMetadata?.title || 'Article Draft',
+                      content: `<p>Start drafting your article here...</p>`,
+                      synopsis: 'Main argument or hook of the piece.',
+                      status: 'draft',
+                      wordCount: 6,
+                      notes: 'Capture research points and supporting citations.',
+                      createdAt: now,
+                      updatedAt: now,
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+          backMatter: [],
+          characters: [],
+          worldBible: [],
+          exportSettings: {
+            bookTheme: 'modern',
+            trimSize: '6x9',
+            dropCaps: false,
+            firstParagraphIndent: false,
+            includeSceneDividers: true,
+            sceneDividerSymbol: '✦   ✦   ✦',
+            includeChapterNumbers: false,
+            chapterTitleStyle: 'none',
+            fontSize: 11,
+            lineSpacing: 1.5,
+            authorHeader: customMetadata?.author || project.author || 'Author',
+            includeCoverPage: false,
+          },
+          createdAt: now,
+          updatedAt: now,
+        }
+      } else if (template === 'short-story') {
+        newProj = {
+          id: 'proj-' + Math.random().toString(36).substring(2, 9),
+          version: '1.0.0',
+          projectType: 'short-story',
+          title: customMetadata?.title || 'Untitled Short Story',
+          subtitle: '',
+          author: customMetadata?.author || project.author || 'Author',
+          language: 'en',
+          genre: customMetadata?.genre || 'Short Fiction',
+          description: customMetadata?.description || 'A complete standalone short fiction piece.',
+          targetWordCount: customMetadata?.targetWordCount || 5000,
+          editorLayout: {
+            contentWidth: 'standard',
+            paragraphStyle: 'indented',
+            lineSpacing: 'normal',
+            fontSizeScale: 'standard',
+            showChapterSubtitle: false,
+            textAlignment: 'left',
+          },
+          frontMatter: [],
+          parts: [
+            {
+              id: 'part-1',
+              title: 'Story',
+              chapters: [
+                {
+                  id: 'chap-1',
+                  title: customMetadata?.title || 'Story',
+                  scenes: [
+                    {
+                      id: 'scene-1',
+                      title: 'Opening Scene',
+                      content: `<p>Start your short story here...</p>`,
+                      synopsis: 'Inciting incident and opening hook.',
+                      status: 'draft',
+                      wordCount: 6,
+                      notes: '',
+                      createdAt: now,
+                      updatedAt: now,
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+          backMatter: [],
+          characters: [],
+          worldBible: [],
+          exportSettings: {
+            bookTheme: 'classic',
+            trimSize: '5.5x8.5',
+            dropCaps: true,
+            firstParagraphIndent: true,
+            includeSceneDividers: true,
+            sceneDividerSymbol: '#',
+            includeChapterNumbers: false,
+            chapterTitleStyle: 'none',
+            fontSize: 12,
+            lineSpacing: 2.0,
             authorHeader: customMetadata?.author || project.author || 'Author',
             includeCoverPage: false,
           },
@@ -885,6 +1247,248 @@ export const ManuscriptProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     setIsDirty(true)
   }, [])
 
+  // Update Chapter Title (Renaming)
+  const updateChapterTitle = useCallback((chapterId: string, title: string) => {
+    setProject((prev) => ({
+      ...prev,
+      parts: prev.parts.map((p) => ({
+        ...p,
+        chapters: p.chapters.map((c) => (c.id === chapterId ? { ...c, title } : c)),
+      })),
+      updatedAt: new Date().toISOString(),
+    }))
+    setIsDirty(true)
+  }, [])
+
+  // Move Scene within Chapter
+  const moveScene = useCallback((sceneId: string, direction: 'up' | 'down') => {
+    setProject((prev) => {
+      const newParts = prev.parts.map((p) => ({
+        ...p,
+        chapters: p.chapters.map((c) => {
+          const idx = c.scenes.findIndex((s) => s.id === sceneId)
+          if (idx < 0) return c
+          const targetIdx = direction === 'up' ? idx - 1 : idx + 1
+          if (targetIdx < 0 || targetIdx >= c.scenes.length) return c
+
+          const newScenes = [...c.scenes]
+          const [moved] = newScenes.splice(idx, 1)
+          newScenes.splice(targetIdx, 0, moved)
+          return { ...c, scenes: newScenes }
+        }),
+      }))
+      return { ...prev, parts: newParts, updatedAt: new Date().toISOString() }
+    })
+    setIsDirty(true)
+  }, [])
+
+  // Move Chapter within Part
+  const moveChapter = useCallback((chapterId: string, direction: 'up' | 'down') => {
+    setProject((prev) => {
+      const newParts = prev.parts.map((p) => {
+        const idx = p.chapters.findIndex((c) => c.id === chapterId)
+        if (idx < 0) return p
+        const targetIdx = direction === 'up' ? idx - 1 : idx + 1
+        if (targetIdx < 0 || targetIdx >= p.chapters.length) return p
+
+        const newChapters = [...p.chapters]
+        const [moved] = newChapters.splice(idx, 1)
+        newChapters.splice(targetIdx, 0, moved)
+        return { ...p, chapters: newChapters }
+      })
+      return { ...prev, parts: newParts, updatedAt: new Date().toISOString() }
+    })
+    setIsDirty(true)
+  }, [])
+
+  // Duplicate Scene
+  const duplicateScene = useCallback((sceneId: string) => {
+    const now = new Date().toISOString()
+    const newSceneId = 'scene-' + Math.random().toString(36).substring(2, 8)
+
+    setProject((prev) => {
+      const newParts = prev.parts.map((p) => ({
+        ...p,
+        chapters: p.chapters.map((c) => {
+          const idx = c.scenes.findIndex((s) => s.id === sceneId)
+          if (idx < 0) return c
+          const source = c.scenes[idx]
+          const clone: SceneItem = {
+            ...JSON.parse(JSON.stringify(source)),
+            id: newSceneId,
+            title: `${source.title} (Copy)`,
+            createdAt: now,
+            updatedAt: now,
+          }
+          const newScenes = [...c.scenes]
+          newScenes.splice(idx + 1, 0, clone)
+          return { ...c, scenes: newScenes }
+        }),
+      }))
+      return { ...prev, parts: newParts, updatedAt: now }
+    })
+
+    setActiveSceneId(newSceneId)
+    setIsDirty(true)
+  }, [])
+
+  // Replace Selected Occurrences by Scene
+  const replaceSelectedOccurrences = useCallback(
+    (replacementsByScene: Record<string, { start: number; length: number; replacement: string }[]>) => {
+      let totalReplaced = 0
+
+      setProject((prev) => {
+        const newParts = prev.parts.map((p) => ({
+          ...p,
+          chapters: p.chapters.map((c) => {
+            const newScenes = c.scenes.map((s) => {
+              const replacements = replacementsByScene[s.id]
+              if (!replacements || replacements.length === 0) return s
+
+              // Sort descending by start offset
+              const sorted = [...replacements].sort((a, b) => b.start - a.start)
+              let content = s.content
+              sorted.forEach((rep) => {
+                content = content.slice(0, rep.start) + rep.replacement + content.slice(rep.start + rep.length)
+                totalReplaced++
+              })
+
+              const plain = content.replace(/<[^>]*>/g, '')
+              const words = plain.trim() ? plain.trim().split(/\s+/).length : 0
+
+              return {
+                ...s,
+                content,
+                plainText: plain,
+                wordCount: words,
+                updatedAt: new Date().toISOString(),
+              }
+            })
+
+            return { ...c, scenes: newScenes }
+          }),
+        }))
+
+        return { ...prev, parts: newParts, updatedAt: new Date().toISOString() }
+      })
+
+      setIsDirty(true)
+      return totalReplaced
+    },
+    []
+  )
+
+  // Batch Replace across scenes / chapters / whole manuscript
+  const batchReplaceAcrossManuscript = useCallback(
+    ({
+      searchTerm,
+      replaceTerm,
+      caseSensitive = false,
+      wholeWord = false,
+      scope = 'manuscript',
+    }: {
+      searchTerm: string
+      replaceTerm: string
+      caseSensitive?: boolean
+      wholeWord?: boolean
+      scope?: 'activeScene' | 'activeChapter' | 'manuscript'
+    }) => {
+      if (!searchTerm) return { replacedOccurrences: 0, affectedScenes: 0 }
+
+      let flags = 'g'
+      if (!caseSensitive) flags += 'i'
+      let escaped = searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+      if (wholeWord) escaped = `\\b${escaped}\\b`
+
+      let regex: RegExp
+      try {
+        regex = new RegExp(escaped, flags)
+      } catch {
+        return { replacedOccurrences: 0, affectedScenes: 0 }
+      }
+
+      let totalReplacements = 0
+      let affectedScenesCount = 0
+
+      setProject((prev) => {
+        const newParts = prev.parts.map((p) => ({
+          ...p,
+          chapters: p.chapters.map((c) => {
+            if (scope === 'activeChapter' && c.id !== currentChapter?.id) return c
+
+            const newScenes = c.scenes.map((s) => {
+              if (scope === 'activeScene' && s.id !== activeSceneId) return s
+
+              // Count matches in content
+              const matches = s.content.match(regex)
+              if (matches && matches.length > 0) {
+                totalReplacements += matches.length
+                affectedScenesCount++
+                const updatedContent = s.content.replace(regex, replaceTerm)
+                const plain = updatedContent.replace(/<[^>]*>/g, '')
+                const words = plain.trim() ? plain.trim().split(/\s+/).length : 0
+                return {
+                  ...s,
+                  content: updatedContent,
+                  plainText: plain,
+                  wordCount: words,
+                  updatedAt: new Date().toISOString(),
+                }
+              }
+              return s
+            })
+
+            return { ...c, scenes: newScenes }
+          }),
+        }))
+
+        return {
+          ...prev,
+          parts: newParts,
+          updatedAt: new Date().toISOString(),
+        }
+      })
+
+      setIsDirty(true)
+      return { replacedOccurrences: totalReplacements, affectedScenes: affectedScenesCount }
+    },
+    [activeSceneId, currentChapter]
+  )
+
+  // Smart Character Entity Renaming
+  const renameCharacterAcrossProject = useCallback(
+    (characterId: string, newName: string) => {
+      const char = project.characters.find((c) => c.id === characterId)
+      if (!char || !newName.trim()) return { replacedCount: 0 }
+      const oldName = char.name.trim()
+      const trimmedNewName = newName.trim()
+
+      // 1. Update character profile
+      setProject((prev) => ({
+        ...prev,
+        characters: prev.characters.map((c) => (c.id === characterId ? { ...c, name: trimmedNewName } : c)),
+        updatedAt: new Date().toISOString(),
+      }))
+
+      if (oldName.toLowerCase() === trimmedNewName.toLowerCase()) {
+        setIsDirty(true)
+        return { replacedCount: 0 }
+      }
+
+      // 2. Batch replace whole-word in manuscript
+      const result = batchReplaceAcrossManuscript({
+        searchTerm: oldName,
+        replaceTerm: trimmedNewName,
+        caseSensitive: true,
+        wholeWord: true,
+        scope: 'manuscript',
+      })
+
+      return { replacedCount: result.replacedOccurrences }
+    },
+    [project.characters, batchReplaceAcrossManuscript]
+  )
+
   // Character Bible Actions
   const addCharacter = useCallback((char: CharacterItem) => {
     setProject((prev) => ({
@@ -1075,6 +1679,30 @@ export const ManuscriptProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         setTypewriterMode,
         focusMode,
         setFocusMode,
+        contentWidth,
+        setContentWidth,
+        paragraphStyle,
+        setParagraphStyle,
+        lineSpacing,
+        setLineSpacing,
+        fontSizeScale,
+        setFontSizeScale,
+        showChapterSubtitle,
+        setShowChapterSubtitle,
+        textAlignment,
+        setTextAlignment,
+        spellCheckEnabled,
+        setSpellCheckEnabled,
+        toggleSpellCheck,
+        spellCheckLanguage,
+        setSpellCheckLanguage,
+        isProjectSearchOpen,
+        setIsProjectSearchOpen,
+        openProjectSearch,
+        projectSearchInitialQuery,
+        batchReplaceAcrossManuscript,
+        renameCharacterAcrossProject,
+        updateChapterTitle,
         isDirty,
         lastSavedAt,
         currentFilePath,
@@ -1090,6 +1718,10 @@ export const ManuscriptProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         addScene,
         deleteScene,
         deleteChapter,
+        moveScene,
+        moveChapter,
+        duplicateScene,
+        replaceSelectedOccurrences,
         addCharacter,
         updateCharacter,
         deleteCharacter,

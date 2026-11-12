@@ -218,12 +218,12 @@ p.drop-cap:first-letter {
       const fileName = `${fileId}.xhtml`
 
       let chapterTitleHtml = ''
-      if (exportSettings.chapterTitleStyle === 'num-and-title') {
-        chapterTitleHtml = `<h2 class="chapter-title">${escapeXml(chap.title)}</h2>`
+      if (exportSettings.chapterTitleStyle === 'none') {
+        chapterTitleHtml = ''
       } else if (exportSettings.chapterTitleStyle === 'num-only') {
         chapterTitleHtml = `<h2 class="chapter-title">Chapter ${chapterCounter}</h2>`
       } else {
-        chapterTitleHtml = `<h2 class="chapter-title">${escapeXml(chap.title)}</h2>`
+        chapterTitleHtml = chap.title ? `<h2 class="chapter-title">${escapeXml(chap.title)}</h2>` : ''
       }
 
       // Build scenes inside chapter

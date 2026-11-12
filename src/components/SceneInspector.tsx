@@ -25,7 +25,7 @@ export const SceneInspector: React.FC<SceneInspectorProps> = ({
   width,
   onWidthChange,
 }) => {
-  const { project, currentScene, activeSceneId, updateSceneMetadata } = useManuscript()
+  const { project, currentScene, activeSceneId, updateSceneMetadata, spellCheckEnabled } = useManuscript()
   const [isResizing, setIsResizing] = useState(false)
 
   // Drag Resizing Logic for Inspector (Left border: extends 200px - 520px)
@@ -257,6 +257,7 @@ export const SceneInspector: React.FC<SceneInspectorProps> = ({
           </label>
           <textarea
             value={currentScene.synopsis || ''}
+            spellCheck={spellCheckEnabled}
             onChange={(e) => updateSceneMetadata(activeSceneId, { synopsis: e.target.value })}
             placeholder="What happens in this scene? What is the turning point?"
             rows={3}
@@ -272,6 +273,7 @@ export const SceneInspector: React.FC<SceneInspectorProps> = ({
           </label>
           <textarea
             value={currentScene.notes || ''}
+            spellCheck={spellCheckEnabled}
             onChange={(e) => updateSceneMetadata(activeSceneId, { notes: e.target.value })}
             placeholder="Sensory details, reminders, scratch notes..."
             rows={3}
