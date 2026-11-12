@@ -113,6 +113,7 @@ export interface ExportSettings {
   chapterTitleStyle: 'num-and-title' | 'title-only' | 'num-only' | 'none'
   fontSize: number
   lineSpacing: number
+  textAlignment?: 'justify' | 'left'
   authorHeader: string
   includeCoverPage: boolean
   coverImage?: string

@@ -124,14 +124,19 @@ export async function generateDocx(
       )
     }
 
-    // Title Block
+    // Title Block (Uses individual story title if collection, or project title)
+    const firstStoryTitle =
+      project.parts[0]?.chapters.length > 1 && project.parts[0]?.chapters[0]?.title
+        ? project.parts[0].chapters[0].title
+        : project.title
+
     docParagraphs.push(
       new Paragraph({
         alignment: AlignmentType.CENTER,
         spacing: { line: 480 },
         children: [
           new TextRun({
-            text: project.title.toUpperCase(),
+            text: firstStoryTitle.toUpperCase(),
             font: 'Times New Roman',
             size: 24,
             bold: true,
@@ -157,11 +162,48 @@ export async function generateDocx(
     )
 
     // Story Text begins directly on Page 1
-    let isFirstScene = true
+    let isFirstChapter = true
     project.parts.forEach((part) => {
       part.chapters.forEach((chapter) => {
+        if (!isFirstChapter) {
+          // Page break and Header for subsequent stories in collection
+          docParagraphs.push(
+            new Paragraph({
+              pageBreakBefore: true,
+              alignment: AlignmentType.CENTER,
+              spacing: { before: 1440, line: 480 },
+              children: [
+                new TextRun({
+                  text: (chapter.title || 'UNTITLED STORY').toUpperCase(),
+                  font: 'Times New Roman',
+                  size: 24,
+                  bold: true,
+                }),
+              ],
+            }),
+            new Paragraph({
+              alignment: AlignmentType.CENTER,
+              spacing: { line: 480 },
+              children: [new TextRun({ text: 'by', font: 'Times New Roman', size: 24 })],
+            }),
+            new Paragraph({
+              alignment: AlignmentType.CENTER,
+              spacing: { line: 480, after: 720 },
+              children: [
+                new TextRun({
+                  text: project.author,
+                  font: 'Times New Roman',
+                  size: 24,
+                }),
+              ],
+            })
+          )
+        }
+        isFirstChapter = false
+
+        let isFirstSceneInChapter = true
         chapter.scenes.forEach((scene) => {
-          if (!isFirstScene) {
+          if (!isFirstSceneInChapter) {
             // Centered '#' for scene break
             docParagraphs.push(
               new Paragraph({
@@ -177,7 +219,7 @@ export async function generateDocx(
               })
             )
           }
-          isFirstScene = false
+          isFirstSceneInChapter = false
 
           const paragraphs = htmlToParagraphs(scene.content)
           paragraphs.forEach((pText) => {

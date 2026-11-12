@@ -39,12 +39,14 @@ export const PublishStudio: React.FC = () => {
 
   // Assemble all book sections for pagination in preview
   interface PreviewSection {
+    id: string
     title: string
     type: string
     contentHtml: string
     isChapter?: boolean
     isCover?: boolean
     chapterNum?: number
+    wordCount?: number
   }
 
   const previewSections: PreviewSection[] = []
@@ -52,6 +54,7 @@ export const PublishStudio: React.FC = () => {
   // 0. Cover Page
   if (exportSettings.coverImage && exportSettings.includeCoverPage) {
     previewSections.push({
+      id: 'cover',
       title: 'Book Cover',
       type: 'cover',
       isCover: true,
@@ -64,9 +67,10 @@ export const PublishStudio: React.FC = () => {
     .filter((fm) => fm.includedInExport)
     .forEach((fm) => {
       previewSections.push({
+        id: fm.id,
         title: fm.title,
         type: 'frontmatter',
-        contentHtml: fm.content,
+        contentHtml: `<div class="scene-block">${fm.content}</div>`,
       })
     })
 
@@ -75,22 +79,25 @@ export const PublishStudio: React.FC = () => {
   project.parts.forEach((p) => {
     p.chapters.forEach((c) => {
       chapCount++
+      const chapWords = c.scenes.reduce((acc, s) => acc + (s.wordCount || 0), 0)
       const scenesHtml = c.scenes
         .map((s, idx) => {
           const divider =
             idx > 0 && exportSettings.includeSceneDividers
-              ? `<p class="my-8 text-center text-muted-theme font-serif tracking-[0.5em] text-xs">${exportSettings.sceneDividerSymbol}</p>`
+              ? `<div class="scene-divider my-8 text-center tracking-[0.5em] text-xs text-muted-theme opacity-65 font-serif">${exportSettings.sceneDividerSymbol || '✦   ✦   ✦'}</div>`
               : ''
-          return `${divider}<div>${s.content}</div>`
+          return `${divider}<div class="scene-block">${s.content}</div>`
         })
         .join('')
 
       previewSections.push({
+        id: c.id,
         title: c.title,
         type: 'chapter',
         contentHtml: scenesHtml,
         isChapter: true,
         chapterNum: chapCount,
+        wordCount: chapWords,
       })
     })
   })
@@ -100,13 +107,15 @@ export const PublishStudio: React.FC = () => {
     .filter((bm) => bm.includedInExport)
     .forEach((bm) => {
       previewSections.push({
+        id: bm.id,
         title: bm.title,
         type: 'backmatter',
-        contentHtml: bm.content,
+        contentHtml: `<div class="scene-block">${bm.content}</div>`,
       })
     })
 
-  const currentSection = previewSections[currentPreviewIndex] || previewSections[0]
+  const safeIndex = Math.min(Math.max(0, currentPreviewIndex), Math.max(0, previewSections.length - 1))
+  const currentSection = previewSections[safeIndex] || previewSections[0]
 
   // Update export settings
   const updateSettings = (updates: Partial<typeof exportSettings>) => {
@@ -311,24 +320,28 @@ export const PublishStudio: React.FC = () => {
     switch (theme) {
       case 'fantasy':
         return {
-          font: 'font-["EB_Garamond",serif]',
-          heading: 'font-["EB_Garamond",serif] tracking-wider uppercase font-bold',
+          fontFamily: "'EB Garamond', Georgia, serif",
+          headingFont: "'EB Garamond', serif",
+          headingClass: 'tracking-wider uppercase font-bold',
         }
       case 'modern':
         return {
-          font: 'font-["Inter",sans-serif]',
-          heading: 'font-["Inter",sans-serif] font-bold tracking-tight',
+          fontFamily: "'Inter', sans-serif",
+          headingFont: "'Inter', sans-serif",
+          headingClass: 'font-bold tracking-tight',
         }
       case 'romantic':
         return {
-          font: 'font-["Newsreader",serif]',
-          heading: 'font-["Newsreader",serif] font-bold tracking-wide',
+          fontFamily: "'Newsreader', 'Lora', serif",
+          headingFont: "'Newsreader', serif",
+          headingClass: 'font-bold tracking-wide italic',
         }
       case 'classic':
       default:
         return {
-          font: 'font-["EB_Garamond",serif]',
-          heading: 'font-["EB_Garamond",serif] tracking-widest uppercase font-bold',
+          fontFamily: "'EB Garamond', 'Charter', Georgia, serif",
+          headingFont: "'EB Garamond', serif",
+          headingClass: 'tracking-widest uppercase font-bold',
         }
     }
   }
@@ -652,10 +665,119 @@ export const PublishStudio: React.FC = () => {
                 {/* Typography Toggles */}
                 <div className="space-y-3 pt-3 border-t border-subtle">
                   <h3 className="text-[10px] uppercase font-semibold text-faint tracking-wider">
-                    Typesetting Options
+                    Typesetting & Interior Options
                   </h3>
 
-                  <label className="flex items-center justify-between text-xs text-muted-theme hover:text-main cursor-pointer">
+                  {/* Body Font Size */}
+                  <div>
+                    <label className="text-[11px] text-muted-theme block mb-1">
+                      Body Font Size
+                    </label>
+                    <div className="grid grid-cols-4 gap-1">
+                      {[10, 11, 12, 13].map((size) => (
+                        <button
+                          key={size}
+                          onClick={() => updateSettings({ fontSize: size })}
+                          className={`py-1 text-center rounded border text-xs font-mono transition-colors cursor-pointer ${
+                            (exportSettings.fontSize || 11) === size
+                              ? 'bg-accent-soft border-accent text-accent font-semibold'
+                              : 'bg-surface border-subtle text-muted-theme hover:text-main'
+                          }`}
+                        >
+                          {size}pt
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Line Spacing */}
+                  <div>
+                    <label className="text-[11px] text-muted-theme block mb-1">
+                      Line Spacing (Leading)
+                    </label>
+                    <div className="grid grid-cols-4 gap-1">
+                      {[
+                        { val: 1.3, label: '1.3x' },
+                        { val: 1.5, label: '1.5x' },
+                        { val: 1.7, label: '1.7x' },
+                        { val: 2.0, label: '2.0x' },
+                      ].map((item) => (
+                        <button
+                          key={item.val}
+                          onClick={() => updateSettings({ lineSpacing: item.val })}
+                          className={`py-1 text-center rounded border text-xs font-mono transition-colors cursor-pointer ${
+                            (exportSettings.lineSpacing || 1.6) === item.val
+                              ? 'bg-accent-soft border-accent text-accent font-semibold'
+                              : 'bg-surface border-subtle text-muted-theme hover:text-main'
+                          }`}
+                        >
+                          {item.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Paragraph Spacing Style */}
+                  <div>
+                    <label className="text-[11px] text-muted-theme block mb-1">
+                      Paragraph Styling
+                    </label>
+                    <div className="grid grid-cols-2 gap-1.5">
+                      <button
+                        onClick={() => updateSettings({ firstParagraphIndent: true })}
+                        className={`py-1.5 px-2 rounded border text-xs transition-colors cursor-pointer text-left ${
+                          exportSettings.firstParagraphIndent
+                            ? 'bg-accent-soft border-accent text-accent font-semibold'
+                            : 'bg-surface border-subtle text-muted-theme hover:text-main'
+                        }`}
+                      >
+                        <span className="block font-medium">First-Line Indent</span>
+                        <span className="text-[10px] text-faint">Standard Fiction</span>
+                      </button>
+                      <button
+                        onClick={() => updateSettings({ firstParagraphIndent: false })}
+                        className={`py-1.5 px-2 rounded border text-xs transition-colors cursor-pointer text-left ${
+                          !exportSettings.firstParagraphIndent
+                            ? 'bg-accent-soft border-accent text-accent font-semibold'
+                            : 'bg-surface border-subtle text-muted-theme hover:text-main'
+                        }`}
+                      >
+                        <span className="block font-medium">Block Spaced</span>
+                        <span className="text-[10px] text-faint">Articles / Modern</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Text Alignment */}
+                  <div>
+                    <label className="text-[11px] text-muted-theme block mb-1">
+                      Text Alignment
+                    </label>
+                    <div className="grid grid-cols-2 gap-1.5">
+                      <button
+                        onClick={() => updateSettings({ textAlignment: 'justify' })}
+                        className={`py-1.5 text-center rounded border text-xs transition-colors cursor-pointer ${
+                          (exportSettings.textAlignment || 'justify') === 'justify'
+                            ? 'bg-accent-soft border-accent text-accent font-semibold'
+                            : 'bg-surface border-subtle text-muted-theme hover:text-main'
+                        }`}
+                      >
+                        Justified (Book)
+                      </button>
+                      <button
+                        onClick={() => updateSettings({ textAlignment: 'left' })}
+                        className={`py-1.5 text-center rounded border text-xs transition-colors cursor-pointer ${
+                          exportSettings.textAlignment === 'left'
+                            ? 'bg-accent-soft border-accent text-accent font-semibold'
+                            : 'bg-surface border-subtle text-muted-theme hover:text-main'
+                        }`}
+                      >
+                        Left-Aligned
+                      </button>
+                    </div>
+                  </div>
+
+                  <label className="flex items-center justify-between text-xs text-muted-theme hover:text-main cursor-pointer pt-1">
                     <span>Drop Caps on Chapter Openings</span>
                     <input
                       type="checkbox"
@@ -868,95 +990,199 @@ export const PublishStudio: React.FC = () => {
           {/* Device Mockup Frame */}
           <div className="flex-1 flex items-center justify-center w-full overflow-hidden">
             <div
-              className={`transition-all duration-300 rounded-xl shadow-md overflow-hidden flex flex-col border border-subtle bg-surface text-main ${
+              className={`transition-all duration-300 rounded-2xl shadow-2xl overflow-hidden flex flex-col border border-subtle bg-surface text-main relative ${
                 devicePreview === 'ereader'
-                  ? 'w-[500px] h-[600px] ring-8 ring-[var(--bg-panel)]'
+                  ? 'w-[520px] h-[640px] ring-12 ring-[#222120] bg-[#fbf9f4] dark:bg-[#1f1d1b]'
                   : devicePreview === 'phone'
-                  ? 'w-[340px] h-[600px] ring-8 ring-[var(--bg-panel)]'
-                  : 'w-[540px] h-[640px]'
+                  ? 'w-[360px] h-[650px] ring-10 ring-[#1c1a18] rounded-3xl bg-[#fdfcf9] dark:bg-[#1a1918]'
+                  : exportSettings.trimSize === '5x8'
+                  ? 'w-[470px] h-[650px] shadow-2xl bg-[#fdfbf7] dark:bg-[#23211f]'
+                  : exportSettings.trimSize === '6x9'
+                  ? 'w-[540px] h-[690px] shadow-2xl bg-[#fdfbf7] dark:bg-[#23211f]'
+                  : 'w-[500px] h-[660px] shadow-2xl bg-[#fdfbf7] dark:bg-[#23211f]'
               }`}
             >
-              {/* E-Reader Top Bar */}
-              <div className="h-7 px-4 border-b border-subtle flex items-center justify-between text-[10px] text-muted-theme select-none">
-                <span className="font-serif italic truncate max-w-[200px]">{project.title}</span>
-                <span>
-                  {currentPreviewIndex + 1} of {previewSections.length}
-                </span>
-              </div>
+              {/* Subtle Book Spine Gutter shadow when in Print Preview */}
+              {devicePreview === 'print' && (
+                <div className="absolute inset-y-0 left-0 w-8 pointer-events-none bg-gradient-to-r from-black/8 to-transparent z-10 select-none" />
+              )}
 
-              {/* Reader Interior Content */}
-              <div className="flex-1 overflow-y-auto px-10 py-8 flex flex-col justify-center">
+              {/* Device Top Running Header */}
+              {devicePreview === 'ereader' ? (
+                <div className="h-8 px-5 border-b border-subtle/80 flex items-center justify-between text-[10px] text-muted-theme select-none bg-panel/50 shrink-0">
+                  <span className="font-serif italic truncate max-w-[220px]">
+                    {currentSection?.isChapter && currentSection.title ? currentSection.title : project.title}
+                  </span>
+                  <span className="font-mono text-[9px]">
+                    {safeIndex + 1} of {previewSections.length}
+                  </span>
+                </div>
+              ) : devicePreview === 'print' ? (
+                <div className="h-8 px-8 border-b border-subtle/60 flex items-center justify-between text-[9px] uppercase tracking-widest text-muted-theme select-none font-serif shrink-0">
+                  <span className="truncate max-w-[160px]">{project.author.toUpperCase()}</span>
+                  <span className="truncate max-w-[200px]">
+                    {currentSection?.isChapter ? currentSection.title.toUpperCase() : project.title.toUpperCase()}
+                  </span>
+                </div>
+              ) : (
+                <div className="h-9 px-6 border-b border-subtle/60 flex items-center justify-between text-[10px] text-muted-theme select-none shrink-0">
+                  <span className="font-semibold text-main">9:41</span>
+                  <div className="w-14 h-3.5 bg-black/80 rounded-full mx-auto" />
+                  <span className="text-[10px]">5G 100%</span>
+                </div>
+              )}
+
+              {/* Reader Interior Scroll Surface */}
+              <div className="flex-1 overflow-y-auto px-8 sm:px-14 py-8 scroll-smooth select-text">
                 {currentSection && (
-                  <div className={`w-full max-w-prose mx-auto ${typo.font}`}>
+                  <div
+                    className={`w-full max-w-prose mx-auto ${
+                      exportSettings.firstParagraphIndent && project.projectType !== 'article'
+                        ? 'indent-paragraphs'
+                        : 'block-paragraphs'
+                    } ${exportSettings.dropCaps ? 'has-drop-caps' : ''} book-preview-interior`}
+                    style={{
+                      fontFamily: typo.fontFamily,
+                      fontSize: `${exportSettings.fontSize || 11.5}pt`,
+                      lineHeight: exportSettings.lineSpacing || 1.6,
+                      textAlign: (exportSettings.textAlignment || 'justify') as any,
+                    }}
+                  >
                     {currentSection.isCover ? (
                       /* Full Cover Page */
-                      <div className="h-full w-full flex flex-col items-center justify-center">
+                      <div className="h-full min-h-[460px] flex flex-col items-center justify-center py-4">
                         <img
                           src={exportSettings.coverImage}
                           alt="Cover Page"
-                          className="max-h-[460px] w-auto object-contain rounded shadow-md border border-subtle"
+                          className="max-h-[480px] w-auto object-contain rounded-lg shadow-xl border border-subtle"
                         />
                       </div>
                     ) : (
                       /* Text Pages */
                       <>
-                        {currentSection.isChapter && exportSettings.chapterTitleStyle !== 'none' && (
-                          <div className="text-center mb-7">
-                            {exportSettings.chapterTitleStyle !== 'title-only' && exportSettings.includeChapterNumbers && (
-                              <p className="text-[10px] uppercase tracking-widest text-muted-theme font-serif mb-1">
-                                Chapter {currentSection.chapterNum}
-                              </p>
+                        {/* Header depending on project type */}
+                        {project.projectType === 'short-story' && currentSection.isChapter ? (
+                          /* Short Story Header (William Shunn manuscript style) */
+                          <div className="mb-10 text-center select-none pb-6 border-b border-subtle">
+                            {currentSection.chapterNum === 1 && (
+                              /* William Shunn Short Story Top Header on Page 1 / Story 1 */
+                              <div className="flex justify-between items-start mb-10 font-mono text-[11px] leading-relaxed text-muted-theme not-italic">
+                                <div className="text-left">
+                                  <p className="font-semibold text-main">{project.author}</p>
+                                  <p className="text-[10px] text-faint">Standard Manuscript Format</p>
+                                </div>
+                                <div className="text-right">
+                                  <p>~{Math.ceil((currentSection.wordCount || 1000) / 100) * 100} words</p>
+                                </div>
+                              </div>
                             )}
-                            {exportSettings.chapterTitleStyle !== 'num-only' && currentSection.title && (
-                              <h2 className={`text-lg font-bold ${typo.heading}`}>
-                                {currentSection.title}
-                              </h2>
-                            )}
+                            <div className="font-serif">
+                              <h1
+                                className="text-2xl font-bold uppercase tracking-wider text-main mb-2"
+                                style={{ fontFamily: typo.headingFont }}
+                              >
+                                {currentSection.title || project.title}
+                              </h1>
+                              <p className="text-xs italic text-muted-theme">by {project.author}</p>
+                            </div>
                           </div>
-                        )}
+                        ) : project.projectType === 'article' && currentSection.isChapter ? (
+                          /* Clean Article Header */
+                          <div className="mb-8 pb-5 border-b border-subtle text-left select-none">
+                            <h1
+                              className="text-2xl font-bold tracking-tight text-main mb-2"
+                              style={{ fontFamily: typo.headingFont }}
+                            >
+                              {currentSection.title || project.title}
+                            </h1>
+                            {project.subtitle && (
+                              <p className="text-sm text-muted-theme mb-3 italic">{project.subtitle}</p>
+                            )}
+                            <div className="flex items-center space-x-2 text-xs text-muted-theme">
+                              <span>By {project.author}</span>
+                              <span>•</span>
+                              <span>~{Math.ceil((currentSection.wordCount || 800) / 220)} min read</span>
+                            </div>
+                          </div>
+                        ) : currentSection.isChapter ? (
+                          /* Standard Book Chapter Header */
+                          exportSettings.chapterTitleStyle !== 'none' ? (
+                            <div className="text-center mb-8 pb-4 border-b border-subtle/50 select-none">
+                              {exportSettings.chapterTitleStyle !== 'title-only' && exportSettings.includeChapterNumbers && (
+                                <p
+                                  className="text-[10px] uppercase tracking-widest text-muted-theme mb-1.5"
+                                  style={{ fontFamily: typo.headingFont }}
+                                >
+                                  Chapter {currentSection.chapterNum}
+                                </p>
+                              )}
+                              {exportSettings.chapterTitleStyle !== 'num-only' && currentSection.title && (
+                                <h2
+                                  className={`text-lg font-bold text-main ${typo.headingClass}`}
+                                  style={{ fontFamily: typo.headingFont }}
+                                >
+                                  {currentSection.title}
+                                </h2>
+                              )}
+                            </div>
+                          ) : null
+                        ) : null}
 
-                        <div
-                          className={`text-xs leading-relaxed text-main ${
-                            exportSettings.dropCaps ? '[&>div>p:first-child]:first-letter:float-left [&>div>p:first-child]:first-letter:text-3xl [&>div>p:first-child]:first-letter:pr-2 [&>div>p:first-child]:first-letter:font-serif' : ''
-                          }`}
-                          dangerouslySetInnerHTML={{ __html: currentSection.contentHtml }}
-                        />
+                        {/* Prose Content */}
+                        <div dangerouslySetInnerHTML={{ __html: currentSection.contentHtml }} />
                       </>
                     )}
                   </div>
                 )}
               </div>
 
-              {/* E-Reader Bottom Running Footer */}
-              <div className="h-7 px-4 border-t border-subtle flex items-center justify-center text-[10px] text-muted-theme select-none">
-                <span className="font-serif uppercase tracking-widest text-[9px]">
-                  {project.author}
-                </span>
+              {/* Running Bottom Footer */}
+              <div className="h-8 px-6 border-t border-subtle/80 flex items-center justify-center text-[10px] text-muted-theme select-none bg-panel/30 shrink-0">
+                {devicePreview === 'ereader' ? (
+                  <span className="font-mono text-[9px]">
+                    {currentSection?.isChapter ? `${project.projectType === 'short-story' ? 'Story' : 'Chapter'} ${currentSection.chapterNum || 1} • ` : ''}
+                    Section {safeIndex + 1} of {previewSections.length}
+                  </span>
+                ) : devicePreview === 'print' ? (
+                  <span className="font-serif text-[11px] font-medium">- {safeIndex + 1} -</span>
+                ) : (
+                  <div className="w-24 h-1 bg-current opacity-20 rounded-full" />
+                )}
               </div>
             </div>
           </div>
 
-          {/* Section Navigation Prev / Next */}
-          <div className="w-full max-w-md flex items-center justify-between mt-3">
+          {/* Section Navigation & Quick Jump Dropdown */}
+          <div className="w-full max-w-lg flex items-center justify-between mt-3 select-none">
             <button
               onClick={() => setCurrentPreviewIndex((prev) => Math.max(0, prev - 1))}
-              disabled={currentPreviewIndex === 0}
-              className="flex items-center space-x-1 text-xs text-muted-theme hover:text-main disabled:opacity-30 disabled:hover:text-muted-theme px-2.5 py-1 rounded bg-surface border border-subtle transition-colors"
+              disabled={safeIndex === 0}
+              className="flex items-center space-x-1 text-xs text-muted-theme hover:text-main disabled:opacity-30 disabled:hover:text-muted-theme px-3 py-1.5 rounded-lg bg-surface border border-subtle transition-colors cursor-pointer"
             >
               <ChevronLeft className="w-3.5 h-3.5" />
               <span>Previous</span>
             </button>
 
-            <span className="text-xs text-muted-theme truncate max-w-[180px]">
-              {currentSection?.title}
-            </span>
+            {/* Quick Section Selector Dropdown */}
+            <select
+              value={safeIndex}
+              onChange={(e) => setCurrentPreviewIndex(Number(e.target.value))}
+              className="bg-surface text-main text-xs px-3 py-1.5 rounded-lg border border-subtle outline-none max-w-[230px] truncate cursor-pointer shadow-xs"
+              title="Jump directly to any book section"
+            >
+              {previewSections.map((sec, idx) => (
+                <option key={sec.id} value={idx}>
+                  {idx + 1}. {sec.title}
+                </option>
+              ))}
+            </select>
 
             <button
               onClick={() =>
                 setCurrentPreviewIndex((prev) => Math.min(previewSections.length - 1, prev + 1))
               }
-              disabled={currentPreviewIndex === previewSections.length - 1}
-              className="flex items-center space-x-1 text-xs text-muted-theme hover:text-main disabled:opacity-30 disabled:hover:text-muted-theme px-2.5 py-1 rounded bg-surface border border-subtle transition-colors"
+              disabled={safeIndex === previewSections.length - 1}
+              className="flex items-center space-x-1 text-xs text-muted-theme hover:text-main disabled:opacity-30 disabled:hover:text-muted-theme px-3 py-1.5 rounded-lg bg-surface border border-subtle transition-colors cursor-pointer"
             >
               <span>Next</span>
               <ChevronRight className="w-3.5 h-3.5" />

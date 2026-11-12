@@ -299,6 +299,69 @@
   text-indent: 0;
 }
 
+/* ========================================================
+   BOOK INTERIOR PREVIEW TYPESETTING ENGINE
+   Authentic print and digital reader typography
+   ======================================================== */
+
+.book-preview-interior {
+  text-rendering: optimizeLegibility;
+  font-feature-settings: "kern" 1, "liga" 1;
+}
+
+/* 1. Indented Fiction Paragraphs */
+.book-preview-interior.indent-paragraphs .scene-block > p {
+  margin-bottom: 0;
+  text-indent: 1.5em;
+}
+
+.book-preview-interior.indent-paragraphs .scene-block > p:first-of-type,
+.book-preview-interior.indent-paragraphs .scene-divider + .scene-block > p:first-of-type {
+  text-indent: 0 !important;
+}
+
+/* 2. Block Non-Fiction & Article Paragraphs */
+.book-preview-interior.block-paragraphs .scene-block > p {
+  text-indent: 0 !important;
+  margin-bottom: 1.15em;
+}
+
+/* 3. Drop Caps on Chapter Openings */
+.book-preview-interior.has-drop-caps .scene-block:first-of-type > p:first-of-type::first-letter {
+  float: left;
+  font-size: 3.5em;
+  line-height: 0.8;
+  padding-right: 0.15em;
+  padding-top: 0.05em;
+  font-weight: bold;
+  font-family: var(--font-serif);
+  color: var(--accent);
+}
+
+/* 4. Lists & Blockquotes in Book Preview */
+.book-preview-interior blockquote {
+  border-left: 2px solid var(--accent);
+  padding-left: 1.25rem;
+  margin: 1.25rem 0;
+  font-style: italic;
+  opacity: 0.85;
+}
+
+.book-preview-interior ul {
+  list-style-type: disc;
+  margin: 0.75rem 0 0.75rem 1.5rem;
+}
+
+.book-preview-interior ol {
+  list-style-type: decimal;
+  margin: 0.75rem 0 0.75rem 1.5rem;
+}
+
+.book-preview-interior li {
+  margin-bottom: 0.35rem;
+  text-indent: 0 !important;
+}
+
 /* Print simulation for book preview */
 @media print {
   body {

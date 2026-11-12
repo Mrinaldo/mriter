@@ -218,9 +218,17 @@ p.drop-cap:first-letter {
       const fileName = `${fileId}.xhtml`
 
       let chapterTitleHtml = ''
-      if (exportSettings.chapterTitleStyle === 'none') {
+      if (
+        exportSettings.chapterTitleStyle === 'none' &&
+        project.projectType !== 'short-story' &&
+        project.projectType !== 'article'
+      ) {
         chapterTitleHtml = ''
-      } else if (exportSettings.chapterTitleStyle === 'num-only') {
+      } else if (
+        exportSettings.chapterTitleStyle === 'num-only' &&
+        project.projectType !== 'short-story' &&
+        project.projectType !== 'article'
+      ) {
         chapterTitleHtml = `<h2 class="chapter-title">Chapter ${chapterCounter}</h2>`
       } else {
         chapterTitleHtml = chap.title ? `<h2 class="chapter-title">${escapeXml(chap.title)}</h2>` : ''
