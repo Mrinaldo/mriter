@@ -1,6 +1,6 @@
 {
   "name": "mriter",
-  "version": "1.1.2",
+  "version": "1.1.3",
   "description": "Distraction-free desktop manuscript writing and book publishing studio for novelists and authors",
   "main": "dist-electron/main.js",
   "repository": {
@@ -116,14 +116,12 @@
         {
           "target": "dmg",
           "arch": [
-            "x64",
             "arm64"
           ]
         },
         {
           "target": "zip",
           "arch": [
-            "x64",
             "arm64"
           ]
         }
