@@ -97,6 +97,20 @@
       "shortcutName": "Mriter",
       "deleteAppDataOnUninstall": false
     },
+    "appx": {
+      "identityName": "62897MrinaldoInc.Mriter",
+      "publisher": "CN=542E7A83-E5F6-41F7-BFB1-740FAE6388C0",
+      "publisherDisplayName": "Mrinaldo Inc.",
+      "applicationId": "Mriter",
+      "displayName": "Mriter",
+      "backgroundColor": "#1E1E1E",
+      "languages": [
+        "en-US"
+      ],
+      "capabilities": [
+        "runFullTrust"
+      ]
+    },
     "mac": {
       "target": [
         {
